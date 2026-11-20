@@ -51,7 +51,7 @@ export const currentUser = {
   nim: '2203141027',
   prodi: 'Teknik Lingkungan',
   fakultas: 'Fakultas Teknik',
-  email: 'alya.ramadhani@mhs.unusa.ac.id',
+  email: 'alya.ramadhani@student.ub.ac.id',
   initials: 'AR',
 }
 
@@ -62,7 +62,7 @@ export const events: EventItem[] = [
     id: 'green-campus-2026',
     title: 'Seminar Nasional Green Campus 2026: Menuju Kampus Net Zero',
     category: 'Seminar',
-    organizer: 'BEM Universitas Nusantara',
+    organizer: 'BEM Universitas Brawijaya',
     date: 'Rabu, 18 November 2026',
     day: '18',
     month: 'Nov',
@@ -280,7 +280,7 @@ export const events: EventItem[] = [
     id: 'webinar-jurnal',
     title: 'Webinar: Menulis Karya Ilmiah dan Publikasi Jurnal Bereputasi',
     category: 'Webinar',
-    organizer: 'LPPM Universitas Nusantara',
+    organizer: 'LPPM Universitas Brawijaya',
     date: 'Sabtu, 19 Desember 2026',
     day: '19',
     month: 'Des',
@@ -391,26 +391,26 @@ export type Participant = {
 }
 
 export const participants: Participant[] = [
-  { id: '1', name: 'Alya Putri Ramadhani', nim: '2203141027', prodi: 'Teknik Lingkungan', email: 'alya.ramadhani@mhs.unusa.ac.id', registeredAt: '2 Nov 2026', status: 'Hadir', checkIn: '07.42', certificate: 'Terkirim' },
-  { id: '2', name: 'Muhammad Fikri Hidayat', nim: '2101051133', prodi: 'Teknik Elektro', email: 'fikri.hidayat@mhs.unusa.ac.id', registeredAt: '2 Nov 2026', status: 'Hadir', checkIn: '07.45', certificate: 'Terkirim' },
-  { id: '3', name: 'Siti Nurhaliza Putri', nim: '2304021009', prodi: 'Manajemen', email: 'siti.nurhaliza@mhs.unusa.ac.id', registeredAt: '3 Nov 2026', status: 'Hadir', checkIn: '07.51', certificate: 'Belum' },
-  { id: '4', name: 'Rizal Ardiansyah', nim: '2202111045', prodi: 'Sistem Informasi', email: 'rizal.ardiansyah@mhs.unusa.ac.id', registeredAt: '3 Nov 2026', status: 'Terdaftar', certificate: '—' },
-  { id: '5', name: 'Dewi Kartika Sari', nim: '2103091021', prodi: 'Biologi', email: 'dewi.kartika@mhs.unusa.ac.id', registeredAt: '3 Nov 2026', status: 'Hadir', checkIn: '07.58', certificate: 'Belum' },
-  { id: '6', name: 'Bagas Prakoso', nim: '2205141078', prodi: 'Teknik Sipil', email: 'bagas.prakoso@mhs.unusa.ac.id', registeredAt: '4 Nov 2026', status: 'Hadir', checkIn: '08.02', certificate: 'Belum' },
-  { id: '7', name: 'Nabila Zahra Aulia', nim: '2304061114', prodi: 'Ilmu Komunikasi', email: 'nabila.zahra@mhs.unusa.ac.id', registeredAt: '4 Nov 2026', status: 'Terdaftar', certificate: '—' },
-  { id: '8', name: 'Kevin Christian Wijaya', nim: '2201031056', prodi: 'Arsitektur', email: 'kevin.wijaya@mhs.unusa.ac.id', registeredAt: '5 Nov 2026', status: 'Batal', certificate: '—' },
-  { id: '9', name: 'Intan Permatasari', nim: '2102081092', prodi: 'Statistika', email: 'intan.permata@mhs.unusa.ac.id', registeredAt: '5 Nov 2026', status: 'Hadir', checkIn: '08.07', certificate: 'Belum' },
-  { id: '10', name: 'Fadhil Akbar Maulana', nim: '2203121067', prodi: 'Teknik Kimia', email: 'fadhil.akbar@mhs.unusa.ac.id', registeredAt: '6 Nov 2026', status: 'Terdaftar', certificate: '—' },
-  { id: '11', name: 'Putri Ayu Lestari', nim: '2305011030', prodi: 'Akuntansi', email: 'putri.ayu@mhs.unusa.ac.id', registeredAt: '6 Nov 2026', status: 'Hadir', checkIn: '08.11', certificate: 'Belum' },
-  { id: '12', name: 'Galih Saputra', nim: '2104071015', prodi: 'Fisika', email: 'galih.saputra@mhs.unusa.ac.id', registeredAt: '7 Nov 2026', status: 'Terdaftar', certificate: '—' },
-  { id: '13', name: 'Anisa Rahmawati', nim: '2203141088', prodi: 'Teknik Lingkungan', email: 'anisa.rahma@mhs.unusa.ac.id', registeredAt: '7 Nov 2026', status: 'Hadir', checkIn: '08.15', certificate: 'Belum' },
-  { id: '14', name: 'Yoga Pratama Putra', nim: '2201011102', prodi: 'Informatika', email: 'yoga.pratama@mhs.unusa.ac.id', registeredAt: '8 Nov 2026', status: 'Terdaftar', certificate: '—' },
+  { id: '1', name: 'Alya Putri Ramadhani', nim: '2203141027', prodi: 'Teknik Lingkungan', email: 'alya.ramadhani@student.ub.ac.id', registeredAt: '2 Nov 2026', status: 'Hadir', checkIn: '07.42', certificate: 'Terkirim' },
+  { id: '2', name: 'Muhammad Fikri Hidayat', nim: '2101051133', prodi: 'Teknik Elektro', email: 'fikri.hidayat@student.ub.ac.id', registeredAt: '2 Nov 2026', status: 'Hadir', checkIn: '07.45', certificate: 'Terkirim' },
+  { id: '3', name: 'Siti Nurhaliza Putri', nim: '2304021009', prodi: 'Manajemen', email: 'siti.nurhaliza@student.ub.ac.id', registeredAt: '3 Nov 2026', status: 'Hadir', checkIn: '07.51', certificate: 'Belum' },
+  { id: '4', name: 'Rizal Ardiansyah', nim: '2202111045', prodi: 'Sistem Informasi', email: 'rizal.ardiansyah@student.ub.ac.id', registeredAt: '3 Nov 2026', status: 'Terdaftar', certificate: '—' },
+  { id: '5', name: 'Dewi Kartika Sari', nim: '2103091021', prodi: 'Biologi', email: 'dewi.kartika@student.ub.ac.id', registeredAt: '3 Nov 2026', status: 'Hadir', checkIn: '07.58', certificate: 'Belum' },
+  { id: '6', name: 'Bagas Prakoso', nim: '2205141078', prodi: 'Teknik Sipil', email: 'bagas.prakoso@student.ub.ac.id', registeredAt: '4 Nov 2026', status: 'Hadir', checkIn: '08.02', certificate: 'Belum' },
+  { id: '7', name: 'Nabila Zahra Aulia', nim: '2304061114', prodi: 'Ilmu Komunikasi', email: 'nabila.zahra@student.ub.ac.id', registeredAt: '4 Nov 2026', status: 'Terdaftar', certificate: '—' },
+  { id: '8', name: 'Kevin Christian Wijaya', nim: '2201031056', prodi: 'Arsitektur', email: 'kevin.wijaya@student.ub.ac.id', registeredAt: '5 Nov 2026', status: 'Batal', certificate: '—' },
+  { id: '9', name: 'Intan Permatasari', nim: '2102081092', prodi: 'Statistika', email: 'intan.permata@student.ub.ac.id', registeredAt: '5 Nov 2026', status: 'Hadir', checkIn: '08.07', certificate: 'Belum' },
+  { id: '10', name: 'Fadhil Akbar Maulana', nim: '2203121067', prodi: 'Teknik Kimia', email: 'fadhil.akbar@student.ub.ac.id', registeredAt: '6 Nov 2026', status: 'Terdaftar', certificate: '—' },
+  { id: '11', name: 'Putri Ayu Lestari', nim: '2305011030', prodi: 'Akuntansi', email: 'putri.ayu@student.ub.ac.id', registeredAt: '6 Nov 2026', status: 'Hadir', checkIn: '08.11', certificate: 'Belum' },
+  { id: '12', name: 'Galih Saputra', nim: '2104071015', prodi: 'Fisika', email: 'galih.saputra@student.ub.ac.id', registeredAt: '7 Nov 2026', status: 'Terdaftar', certificate: '—' },
+  { id: '13', name: 'Anisa Rahmawati', nim: '2203141088', prodi: 'Teknik Lingkungan', email: 'anisa.rahma@student.ub.ac.id', registeredAt: '7 Nov 2026', status: 'Hadir', checkIn: '08.15', certificate: 'Belum' },
+  { id: '14', name: 'Yoga Pratama Putra', nim: '2201011102', prodi: 'Informatika', email: 'yoga.pratama@student.ub.ac.id', registeredAt: '8 Nov 2026', status: 'Terdaftar', certificate: '—' },
 ]
 
 /* ---------- Organizer ---------- */
 
 export const organizer = {
-  name: 'BEM Universitas Nusantara',
+  name: 'BEM Universitas Brawijaya',
   admin: 'Raka Mahendra',
   role: 'Koordinator Acara',
   initials: 'RM',

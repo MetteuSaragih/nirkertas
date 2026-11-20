@@ -199,7 +199,7 @@ export function Impact() {
             <li>
               <b>After:</b> Sustainable Web Design Model v4, {nf2.format(swdmKwhPerGB())} kWh/GB (operasional + embodied), intensitas listrik Indonesia 2024 sebesar 680,25 g CO2e/kWh (Ember, via Our World in Data).
             </li>
-            <li>Bobot transfer per halaman diukur dari build produksi. Pencetakan (tinta, listrik printer) dan distribusi tidak dihitung.</li>
+            <li>Bobot transfer per halaman diukur pada situs produksi (Resource Timing API). Pencetakan (tinta, listrik printer) dan distribusi tidak dihitung.</li>
           </ul>
           <p className="mt-3 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <Leaf className="size-4 text-emerald-600" aria-hidden /> Angka adalah estimasi berbasis skenario, bukan hasil pengukuran langsung di acara.
