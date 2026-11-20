@@ -124,7 +124,7 @@ export function PublicLayout({ path, children }: { path: string; children: React
           ))}
         </div>
         <div className="border-t border-slate-100 dark:border-slate-800">
-          <p className="mx-auto max-w-7xl px-4 py-5 text-xs text-slate-400 sm:px-6 lg:px-8">
+          <p className="mx-auto max-w-7xl px-4 py-5 text-xs text-slate-500 sm:px-6 lg:px-8">
             © 2026 nirkertas · Dikembangkan untuk organisasi mahasiswa Universitas Nusantara
           </p>
         </div>

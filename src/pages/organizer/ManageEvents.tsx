@@ -70,7 +70,7 @@ function CreateEventPanel({ onClose, onCreate }: { onClose: () => void; onCreate
 
         <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
           <button type="button" className="flex w-full flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-8 text-sm text-slate-500 hover:border-emerald-400 hover:bg-emerald-50/50 dark:border-slate-700 dark:bg-slate-800/50 dark:hover:border-emerald-600 dark:hover:bg-emerald-900/20">
-            <ImageIcon className="size-6 text-slate-400" aria-hidden />
+            <ImageIcon className="size-6 text-slate-500" aria-hidden />
             <span className="mt-2 font-medium text-slate-700">Unggah e-poster</span>
             <span className="text-xs">PNG atau JPG, maks. 2 MB, rasio 16:9</span>
           </button>
@@ -191,7 +191,7 @@ export function ManageEvents() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Segmented options={tabs} value={tab} onChange={setTab} label="Filter status acara" className="overflow-x-auto" />
         <div className="relative sm:w-72">
-          <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
+          <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-500" aria-hidden />
           <label htmlFor="cari-acara" className="sr-only">Cari acara</label>
           <Input id="cari-acara" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari acara…" className="pl-10" />
         </div>
@@ -206,8 +206,8 @@ export function ManageEvents() {
             </div>
             <h3 className="mt-3 line-clamp-2 font-semibold text-slate-900">{e.title}</h3>
             <div className="mt-2 space-y-1 text-sm text-slate-500">
-              <p className="flex items-center gap-2"><CalendarDays className="size-4 text-slate-400" aria-hidden /> {e.date}</p>
-              <p className="flex items-center gap-2"><MapPin className="size-4 text-slate-400" aria-hidden /> {e.location}</p>
+              <p className="flex items-center gap-2"><CalendarDays className="size-4 text-slate-500" aria-hidden /> {e.date}</p>
+              <p className="flex items-center gap-2"><MapPin className="size-4 text-slate-500" aria-hidden /> {e.location}</p>
             </div>
 
             <div className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-slate-50 p-3 text-center">

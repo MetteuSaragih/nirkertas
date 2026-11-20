@@ -188,7 +188,7 @@ export function Scanner() {
                 Masukkan kode tiket manual
               </label>
               <div className="relative flex-1">
-                <Keyboard className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
+                <Keyboard className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-500" aria-hidden />
                 <Input id="kode-manual" value={manual} onChange={(e) => setManual(e.target.value)} placeholder="NKT-XXXX-XXXX" className="h-12 pl-10 font-mono uppercase" />
               </div>
               <Button type="submit" variant="secondary" size="lg">
@@ -262,7 +262,7 @@ export function Scanner() {
                 <p className="text-sm text-slate-500 dark:text-slate-400">Presensi tercatat (perangkat ini)</p>
                 <p className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
                   {hadir.length}
-                  <span className="text-base font-medium text-slate-400"> / {Math.max(regs.length, hadir.length)} pendaftar lokal</span>
+                  <span className="text-base font-medium text-slate-500"> / {Math.max(regs.length, hadir.length)} pendaftar lokal</span>
                 </p>
               </div>
             </div>
@@ -283,7 +283,7 @@ export function Scanner() {
                       <CircleCheck className="size-4" aria-hidden />
                     </span>
                     <p className="min-w-0 flex-1 truncate text-sm text-slate-800 dark:text-slate-200">{c.name}</p>
-                    <span className="text-xs text-slate-400">{formatDateTime(c.at)}</span>
+                    <span className="text-xs text-slate-500">{formatDateTime(c.at)}</span>
                   </li>
                 ))}
               </ul>

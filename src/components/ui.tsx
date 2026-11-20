@@ -7,7 +7,7 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'dark' | 'lime' | 'danger'
 type Size = 'sm' | 'md' | 'lg'
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm shadow-emerald-900/10',
+  primary: 'bg-emerald-700 text-white hover:bg-emerald-800 shadow-sm shadow-emerald-900/10',
   secondary: 'bg-white text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-50 hover:ring-slate-300 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700',
   ghost: 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
   dark: 'bg-emerald-950 text-white hover:bg-emerald-900',
@@ -121,6 +121,7 @@ export function Progress({ value, max, className, tone = 'emerald' }: { value: n
     <div
       className={cn('h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800', className)}
       role="progressbar"
+      aria-label={`${pct}% terisi`}
       aria-valuenow={pct}
       aria-valuemin={0}
       aria-valuemax={100}

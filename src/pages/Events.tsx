@@ -45,7 +45,7 @@ export function Events() {
 
           <div className="mt-8 grid gap-3 md:grid-cols-[1fr_180px_180px]">
             <div className="relative">
-              <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
+              <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-500" aria-hidden />
               <label htmlFor="cari" className="sr-only">Cari acara</label>
               <Input id="cari" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari judul, penyelenggara, atau lokasi…" className="pl-10" />
             </div>

@@ -96,13 +96,13 @@ export function Dashboard() {
             </div>
           </div>
           <div className="flex-1 p-5">
-            <p className="mt-3 text-xs font-semibold tracking-wider text-slate-400 uppercase">Check-in terbaru</p>
+            <p className="mt-3 text-xs font-semibold tracking-wider text-slate-500 uppercase">Check-in terbaru</p>
             <ul className="mt-3 space-y-3">
               {recentCheckins.map((c) => (
                 <li key={c.name} className="flex items-center gap-3">
                   <Avatar name={c.name} className="size-8" />
                   <p className="min-w-0 flex-1 truncate text-sm font-medium text-slate-800 dark:text-slate-200">{c.name}</p>
-                  <span className="shrink-0 text-xs text-slate-400">{c.time}</span>
+                  <span className="shrink-0 text-xs text-slate-500">{c.time}</span>
                 </li>
               ))}
             </ul>

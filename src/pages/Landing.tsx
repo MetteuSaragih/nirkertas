@@ -96,14 +96,14 @@ export function Landing() {
               <div className="rounded-2xl bg-white p-4 shadow-lift ring-1 ring-slate-200/80">
                 <div className="flex items-center justify-between">
                   <p className="text-[11px] font-bold tracking-widest text-emerald-700 uppercase">E-Tiket</p>
-                  <QrCode className="size-4 text-slate-400" aria-hidden />
+                  <QrCode className="size-4 text-slate-500" aria-hidden />
                 </div>
                 <p className="mt-1 line-clamp-1 text-sm font-semibold text-slate-900">Seminar Green Campus 2026</p>
                 <div className="perforation my-3 h-1" aria-hidden />
                 <div className="flex items-center gap-3">
                   <QRCode value="NKT-GC26-0342" className="size-16 rounded-md sm:size-20" label="Contoh QR Code e-tiket" />
                   <div className="text-xs">
-                    <p className="text-slate-400">Kode</p>
+                    <p className="text-slate-500">Kode</p>
                     <p className="font-mono font-semibold text-slate-800">GC26-0342</p>
                     <p className="mt-1.5 inline-flex items-center gap-1 font-semibold text-emerald-700">
                       <CircleCheck className="size-3.5" aria-hidden /> Valid
@@ -129,8 +129,8 @@ export function Landing() {
       {/* Org strip */}
       <section className="border-y border-slate-200/70 bg-white dark:border-slate-700/70 dark:bg-slate-900">
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 px-4 py-6 sm:px-6 md:flex-row md:justify-between lg:px-8">
-          <p className="text-xs font-semibold tracking-wider text-slate-400 uppercase">Digunakan oleh</p>
-          <ul className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm font-semibold text-slate-400 dark:text-slate-500">
+          <p className="text-xs font-semibold tracking-wider text-slate-500 uppercase">Digunakan oleh</p>
+          <ul className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm font-semibold text-slate-500 dark:text-slate-500">
             {['BEM Universitas', 'HIMA Sistem Informasi', 'KSM Eco Ranger', 'UKM Pecinta Alam', 'LPPM', 'HIMA Manajemen'].map((o) => (
               <li key={o}>{o}</li>
             ))}
@@ -155,7 +155,7 @@ export function Landing() {
                   <span className="grid size-11 place-items-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
                     <Icon className="size-5" aria-hidden />
                   </span>
-                  <span className="text-xs font-bold text-slate-300 dark:text-slate-600">0{i + 1}</span>
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-600">0{i + 1}</span>
                 </div>
                 <h3 className="mt-5 font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">{text}</p>
@@ -193,9 +193,9 @@ export function Landing() {
           </Card>
           <div className="overflow-hidden rounded-2xl bg-emerald-950 text-white shadow-soft">
             <div className="p-8 sm:p-10">
-              <Badge tone="lime" className="bg-lime-300/15 text-lime-200 ring-lime-300/25">
+              <span className="inline-flex items-center gap-1 rounded-full bg-lime-300/15 px-2.5 py-0.5 text-xs font-semibold text-lime-200 ring-1 ring-lime-300/25 ring-inset">
                 <ChartNoAxesColumn className="size-3.5" aria-hidden /> Untuk penyelenggara
-              </Badge>
+              </span>
               <h3 className="mt-4 text-2xl font-bold tracking-tight">Administrasi acara yang efisien dan terukur.</h3>
               <ul className="mt-6 space-y-3">
                 {[

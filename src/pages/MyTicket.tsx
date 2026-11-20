@@ -67,7 +67,7 @@ export function MyTicket() {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[320px_1fr]">
         <div>
-          <p className="mb-3 text-xs font-semibold tracking-wider text-slate-400 uppercase">E-tiket · {tickets.length}</p>
+          <p className="mb-3 text-xs font-semibold tracking-wider text-slate-500 uppercase">E-tiket · {tickets.length}</p>
           <ul className="space-y-3" aria-label="Daftar e-tiket">
             {tickets.map((t) => {
               const e = getEvent(t.eventId)!

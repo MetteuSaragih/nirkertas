@@ -39,14 +39,14 @@ export function EventCard({ event }: { event: EventItem }) {
         </h3>
         <div className="mt-3 space-y-1.5 text-sm text-slate-500 dark:text-slate-400">
           <p className="flex items-center gap-2">
-            <CalendarDays className="size-4 shrink-0 text-slate-400 dark:text-slate-500" aria-hidden />
+            <CalendarDays className="size-4 shrink-0 text-slate-500 dark:text-slate-500" aria-hidden />
             <span className="truncate">{event.date}</span>
           </p>
           <p className="flex items-center gap-2">
             {event.mode === 'Daring' ? (
-              <MonitorPlay className="size-4 shrink-0 text-slate-400 dark:text-slate-500" aria-hidden />
+              <MonitorPlay className="size-4 shrink-0 text-slate-500 dark:text-slate-500" aria-hidden />
             ) : (
-              <MapPin className="size-4 shrink-0 text-slate-400 dark:text-slate-500" aria-hidden />
+              <MapPin className="size-4 shrink-0 text-slate-500 dark:text-slate-500" aria-hidden />
             )}
             <span className="truncate">{event.location}</span>
           </p>

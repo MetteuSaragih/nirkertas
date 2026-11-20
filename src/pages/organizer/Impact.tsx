@@ -28,7 +28,7 @@ function NumberField({ id, label, value, onChange, min, max, step = 1, suffix }:
           }}
           className={suffix ? 'pr-12' : undefined}
         />
-        {suffix && <span className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-xs text-slate-400">{suffix}</span>}
+        {suffix && <span className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-xs text-slate-500">{suffix}</span>}
       </div>
     </div>
   )
@@ -151,7 +151,7 @@ export function Impact() {
                   {r.before.rows.map((d) => (
                     <tr key={d.key}>
                       <td className="px-6 py-3 text-slate-800 dark:text-slate-200">
-                        {d.label} <span className="text-xs text-slate-400">({d.size})</span>
+                        {d.label} <span className="text-xs text-slate-500">({d.size})</span>
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums">{nf.format(d.qty)}</td>
                       <td className="px-4 py-3 text-right tabular-nums">{nf2.format(d.sheetsA4)}</td>
