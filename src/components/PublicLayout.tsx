@@ -101,7 +101,7 @@ export function PublicLayout({ path, children }: { path: string; children: React
               E-ticketing dan manajemen acara paperless untuk kegiatan kampus yang lebih rapi dan lebih hijau.
             </p>
             <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
-              <Leaf className="size-3.5" aria-hidden /> 18.590 lembar kertas dihemat tahun ini
+              <Leaf className="size-3.5" aria-hidden /> Tiket, presensi, dan sertifikat tanpa kertas
             </p>
           </div>
           {[

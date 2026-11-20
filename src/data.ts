@@ -1,3 +1,5 @@
+import { customEvents } from './lib/store'
+
 export type Category = 'Seminar' | 'Workshop' | 'Pelatihan' | 'Webinar'
 export type EventStatus = 'Pendaftaran Dibuka' | 'Kuota Penuh' | 'Draf' | 'Berlangsung' | 'Selesai'
 
@@ -304,7 +306,9 @@ export const events: EventItem[] = [
   },
 ]
 
-export const getEvent = (id: string) => events.find((e) => e.id === id)
+/** Katalog lengkap: acara buatan panitia (tersimpan lokal) + acara contoh. */
+export const allEvents = (): EventItem[] => [...customEvents(), ...events]
+export const getEvent = (id: string) => allEvents().find((e) => e.id === id)
 
 export type Ticket = {
   code: string

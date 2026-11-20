@@ -15,7 +15,8 @@ import {
 } from 'lucide-react'
 import { Avatar, Badge, Button, ButtonLink, Card, CategoryBadge, Input, Label, Progress, Select } from '../components/ui'
 import { currentUser, getEvent, img } from '../data'
-import { nf } from '../lib/cn'
+import { nf, nf1 } from '../lib/cn'
+import { BASE_SCENARIO, beforeEvent } from '../lib/carbon'
 import { QRCode } from '../components/QRCode'
 import { register, useDB, type Registration } from '../lib/store'
 import { encodeTicket } from '../lib/ticket'
@@ -110,6 +111,7 @@ export function EventDetail({ id }: { id: string }) {
             </ul>
           </section>
 
+          {event.speakers.length > 0 && (
           <section>
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Pembicara</h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -124,7 +126,9 @@ export function EventDetail({ id }: { id: string }) {
               ))}
             </div>
           </section>
+          )}
 
+          {event.agenda.length > 0 && (
           <section>
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Rundown</h2>
             <Card className="mt-4 p-2">
@@ -138,6 +142,7 @@ export function EventDetail({ id }: { id: string }) {
               </ol>
             </Card>
           </section>
+          )}
 
           <section className="rounded-2xl bg-emerald-50 p-6 ring-1 ring-emerald-100 dark:bg-emerald-900/30 dark:ring-emerald-800/40">
             <div className="flex gap-4">
@@ -147,8 +152,9 @@ export function EventDetail({ id }: { id: string }) {
               <div>
                 <h2 className="font-semibold text-emerald-950 dark:text-emerald-200">Komitmen acara tanpa kertas</h2>
                 <p className="mt-1 text-sm leading-relaxed text-emerald-900/80 dark:text-emerald-300/80">
-                  Tiket, presensi, materi, dan sertifikat acara ini sepenuhnya digital. Dengan {nf.format(event.quota)} kuota peserta,
-                  acara ini berpotensi menghemat ± {nf.format(event.quota * 3)} lembar kertas.
+                  Tiket, presensi, tag nama, dan sertifikat acara ini sepenuhnya digital. Dengan {nf.format(event.quota)} kuota peserta,
+                  acara ini berpotensi menghindari ± {nf1.format(beforeEvent({ ...BASE_SCENARIO, participants: event.quota }).sheetsA4)} lembar setara A4
+                  ({nf1.format(beforeEvent({ ...BASE_SCENARIO, participants: event.quota }).co2g / 1000)} kg CO2e produksi kertas).
                 </p>
               </div>
             </div>

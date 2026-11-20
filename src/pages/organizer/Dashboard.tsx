@@ -4,7 +4,10 @@ import { Avatar, Badge, ButtonLink, Card, PageHeader, Progress, StatCard, status
 import { ChartTooltip, axisProps } from '../../components/charts'
 import { PaperToLeafIllustration } from '../../components/Illustrations'
 import { managedEvents, organizer, recentCheckins, registrationTrend } from '../../data'
-import { nf } from '../../lib/cn'
+import { nf, nf1 } from '../../lib/cn'
+import { compare } from '../../lib/carbon'
+
+const est = compare()
 import { useDB } from '../../lib/store'
 
 export function Dashboard() {
@@ -96,7 +99,7 @@ export function Dashboard() {
             </div>
           </div>
           <div className="flex-1 p-5">
-            <p className="mt-3 text-xs font-semibold tracking-wider text-slate-500 uppercase">Check-in terbaru</p>
+            <p className="mt-3 text-xs font-semibold tracking-wider text-slate-500 uppercase">Check-in terbaru (data contoh)</p>
             <ul className="mt-3 space-y-3">
               {recentCheckins.map((c) => (
                 <li key={c.name} className="flex items-center gap-3">
@@ -116,7 +119,7 @@ export function Dashboard() {
       <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
         <Card className="overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 sm:px-6">
-            <h2 className="font-semibold text-slate-900 dark:text-slate-100">Acara mendatang</h2>
+            <h2 className="font-semibold text-slate-900 dark:text-slate-100">Acara mendatang <span className="text-xs font-normal text-slate-500">(data contoh)</span></h2>
             <a href="#/panel/acara" className="text-sm font-semibold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300">Kelola semua</a>
           </div>
           <ul className="divide-y divide-slate-100 border-t border-slate-100 dark:divide-slate-800 dark:border-slate-800">
@@ -142,17 +145,17 @@ export function Dashboard() {
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 p-6 text-white shadow-soft">
           <PaperToLeafIllustration className="absolute -right-6 -bottom-4 w-48 opacity-90" />
           <p className="flex items-center gap-2 text-sm font-medium text-emerald-50">
-            <Leaf className="size-4 text-lime-300" aria-hidden /> Dampak lingkungan bulan ini
+            <Leaf className="size-4 text-lime-300" aria-hidden /> Estimasi per acara (100 peserta)
           </p>
-          <p className="mt-4 text-4xl font-bold tracking-tight">1.842</p>
-          <p className="text-sm text-emerald-50/85">lembar kertas tidak dicetak</p>
+          <p className="mt-4 text-4xl font-bold tracking-tight">{nf.format(Math.round(est.before.sheetsA4))}</p>
+          <p className="text-sm text-emerald-50/85">lembar setara A4 tidak dicetak</p>
           <div className="mt-5 flex gap-6">
             <div>
-              <p className="text-xl font-bold">8,5 kg</p>
+              <p className="text-xl font-bold">{nf1.format(est.savedG / 1000)} kg</p>
               <p className="text-xs text-emerald-50/80">CO2e dihindari</p>
             </div>
             <div>
-              <p className="text-xl font-bold">−81%</p>
+              <p className="text-xl font-bold">−{nf1.format(est.savedPct)}%</p>
               <p className="text-xs text-emerald-50/80">vs konvensional</p>
             </div>
           </div>

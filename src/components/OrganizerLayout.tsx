@@ -1,3 +1,6 @@
+import { useDB } from '../lib/store'
+import { PAPER } from '../lib/carbon'
+import { nf1 } from '../lib/cn'
 import { useState, type ReactNode } from 'react'
 import {
   ArrowLeft,
@@ -65,8 +68,7 @@ function SidebarContent({ path, onNavigate }: { path: string; onNavigate?: () =>
       </nav>
       <div className="m-4 rounded-2xl bg-gradient-to-br from-emerald-500/25 to-teal-500/10 p-4 ring-1 ring-emerald-400/20">
         <Leaf className="size-5 text-lime-300" aria-hidden />
-        <p className="mt-2 text-sm font-semibold text-white">1.842 lembar dihemat</p>
-        <p className="mt-0.5 text-xs leading-relaxed text-emerald-100/70">Bulan ini, setara 8,5 kg CO2e tidak terlepas ke atmosfer.</p>
+        <SavedSummary />
         <a href="#/panel/dampak" onClick={onNavigate} className="mt-3 inline-block text-xs font-semibold text-lime-300 hover:text-lime-200">
           Lihat laporan dampak →
         </a>
@@ -134,5 +136,18 @@ export function OrganizerLayout({ path, children }: { path: string; children: Re
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">{children}</main>
       </div>
     </div>
+  )
+}
+
+/** Ringkasan kertas yang dihindari dari data nyata di perangkat ini (tiket & tag nama A6, sertifikat A4). */
+function SavedSummary() {
+  const db = useDB()
+  const sheets = db.registrations.length * 0.25 + db.checkins.length * 0.25 + db.registrations.filter((r) => r.certificateNo).length
+  const co2 = sheets * PAPER.a4Grams * PAPER.efKgPerKg
+  return (
+    <>
+      <p className="mt-2 text-sm font-semibold text-white">{nf1.format(sheets)} lembar A4 dihindari</p>
+      <p className="mt-0.5 text-xs leading-relaxed text-emerald-100/70">Dari e-tiket, presensi, dan e-sertifikat tercatat, setara {nf1.format(co2)} g CO2e produksi kertas.</p>
+    </>
   )
 }

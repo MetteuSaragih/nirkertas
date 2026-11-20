@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Camera, CameraOff, CircleAlert, CircleCheck, CircleX, Keyboard, RefreshCw } from 'lucide-react'
 import { Avatar, Button, Card, Input, PageHeader, Select } from '../../components/ui'
-import { events } from '../../data'
+import { allEvents } from '../../data'
 import { cn } from '../../lib/cn'
 import { checkIn, formatDateTime, useDB, type CheckInResult } from '../../lib/store'
 import { decodeTicket } from '../../lib/ticket'
@@ -44,6 +44,7 @@ async function createDetector(): Promise<Detector> {
 }
 
 export function Scanner() {
+  const events = allEvents()
   const openEvents = events.filter((e) => e.status !== 'Selesai')
   const [eventId, setEventId] = useState(openEvents[0].id)
   const [result, setResult] = useState<CheckInResult | null>(null)

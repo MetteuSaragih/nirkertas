@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Award, CircleCheck, Clock, Download, Search, UserCheck, Users } from 'lucide-react'
 import { Avatar, Badge, Button, ButtonLink, Card, Input, PageHeader, Select, StatCard } from '../../components/ui'
-import { events } from '../../data'
+import { allEvents } from '../../data'
 import { formatDateTime, useDB, type Registration } from '../../lib/store'
 
 type Status = 'Semua' | 'Hadir' | 'Terdaftar'
@@ -16,6 +16,7 @@ function toCsv(rows: Registration[]) {
 }
 
 export function Participants() {
+  const events = allEvents()
   const { registrations } = useDB()
   const [eventId, setEventId] = useState(events[0].id)
   const [q, setQ] = useState('')

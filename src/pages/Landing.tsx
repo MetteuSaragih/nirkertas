@@ -17,8 +17,9 @@ import {
 import { Badge, ButtonLink, Card, Eyebrow } from '../components/ui'
 import { EventCard } from '../components/EventCard'
 import { QRCode } from '../components/QRCode'
-import { events, img, impact, photos } from '../data'
-import { nf } from '../lib/cn'
+import { events, img, photos } from '../data'
+import { nf, nf1 } from '../lib/cn'
+import { compare } from '../lib/carbon'
 
 const steps = [
   { icon: CalendarPlus, title: 'Buat acara', text: 'Penyelenggara menyusun detail, kuota, dan rundown dalam hitungan menit.' },
@@ -27,6 +28,8 @@ const steps = [
   { icon: ScanLine, title: 'Presensi digital', text: 'Panitia memindai QR Code di pintu masuk, data hadir tercatat real-time.' },
   { icon: Award, title: 'E-sertifikat', text: 'Sertifikat terverifikasi QR siap diunduh sesudah acara selesai.' },
 ]
+
+const est = compare()
 
 export function Landing() {
   const upcoming = events.slice(0, 3)
@@ -59,9 +62,9 @@ export function Landing() {
             </div>
             <dl className="mt-12 grid max-w-lg grid-cols-3 gap-6 border-t border-slate-200 dark:border-slate-700 pt-6">
               {[
-                ['120+', 'organisasi mahasiswa'],
-                [nf.format(impact.totalParticipants), 'peserta terdaftar'],
-                ['79%', 'emisi dokumen berkurang'],
+                ['5', 'jenis dokumen cetak digantikan'],
+                [`${nf1.format(est.savedPct)}%`, 'estimasi emisi dokumen per acara berkurang'],
+                ['0', 'server aplikasi yang menyala terus'],
               ].map(([v, l]) => (
                 <div key={l}>
                   <dt className="sr-only">{l}</dt>
@@ -87,7 +90,7 @@ export function Landing() {
               <div className="absolute right-5 bottom-5 left-5 text-white">
                 <Badge tone="lime" className="bg-lime-300 text-emerald-950 ring-0">Berlangsung hari ini</Badge>
                 <p className="mt-2 text-lg font-semibold">Talkshow Dies Natalis ke-45</p>
-                <p className="text-sm text-emerald-100/85">214 dari 286 peserta sudah check-in</p>
+                <p className="text-sm text-emerald-100/85">Presensi cukup dengan memindai QR e-tiket</p>
               </div>
             </div>
 
@@ -116,10 +119,10 @@ export function Landing() {
             {/* Floating impact chip */}
             <div className="absolute top-6 -right-3 rounded-2xl bg-emerald-950 px-4 py-3 text-white shadow-lift sm:-right-8">
               <p className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-200">
-                <Leaf className="size-3.5 text-lime-300" aria-hidden /> Kertas dihemat
+                <Leaf className="size-3.5 text-lime-300" aria-hidden /> Kertas dihindari / acara
               </p>
               <p className="mt-0.5 text-xl font-bold">
-                {nf.format(impact.sheetsSaved)} <span className="text-xs font-medium text-emerald-200">lembar</span>
+                {nf.format(Math.round(est.before.sheetsA4))} <span className="text-xs font-medium text-emerald-200">lembar A4</span>
               </p>
             </div>
           </div>
@@ -226,7 +229,7 @@ export function Landing() {
             <Eyebrow className="text-lime-300 [&>span]:bg-lime-300">Dampak bersama</Eyebrow>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">Setiap e-tiket adalah selembar kertas yang tidak dicetak.</h2>
             <p className="mt-4 text-emerald-100/80">
-              Angka berikut dihitung otomatis dari seluruh acara di platform sepanjang Januari–Oktober 2026.
+              Estimasi untuk satu acara dengan 100 peserta dan 12 acara per tahun, dihitung dengan metode yang sama seperti kalkulator dampak.
             </p>
             <ButtonLink to="/panel/dampak" variant="lime" className="mt-8">
               Lihat dashboard dampak <ArrowRight className="size-4" aria-hidden />
@@ -234,10 +237,10 @@ export function Landing() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             {[
-              { icon: Leaf, v: nf.format(impact.sheetsSaved), u: 'lembar', l: 'kertas tidak dicetak' },
-              { icon: Sparkles, v: '67,5', u: 'kg CO2e', l: 'emisi berhasil dihindari' },
-              { icon: TreePine, v: '2,2', u: 'pohon', l: 'setara kebutuhan bahan kertas' },
-              { icon: Droplets, v: '186', u: 'ribu liter', l: 'air produksi kertas dihemat' },
+              { icon: Leaf, v: nf.format(Math.round(est.before.sheetsA4)), u: 'lembar A4', l: 'kertas tidak dicetak per acara' },
+              { icon: Sparkles, v: nf1.format(est.savedG), u: 'g CO2e', l: 'emisi dihindari per acara' },
+              { icon: TreePine, v: nf1.format(est.yearlySavedKg), u: 'kg CO2e', l: 'emisi dihindari per tahun' },
+              { icon: Droplets, v: nf1.format(est.savedPct), u: '%', l: 'lebih rendah dari proses cetak' },
             ].map(({ icon: Icon, v, u, l }) => (
               <div key={l} className="rounded-2xl bg-white/5 p-5 ring-1 ring-white/10 backdrop-blur">
                 <Icon className="size-5 text-lime-300" aria-hidden />

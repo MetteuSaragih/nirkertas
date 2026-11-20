@@ -6,6 +6,7 @@
  * Dengan begitu tidak ada tabel terpisah yang perlu di-join dan tidak ada data ganda.
  */
 import { useSyncExternalStore } from 'react'
+import type { EventItem } from '../data'
 
 export type Registration = {
   code: string // kode tiket unik, mis. NKT-GC26-7K3Q
@@ -28,17 +29,17 @@ export type CheckIn = {
   at: string // ISO 8601
 }
 
-type DB = { registrations: Registration[]; checkins: CheckIn[] }
+type DB = { registrations: Registration[]; checkins: CheckIn[]; events: EventItem[] }
 
 const KEY = 'nirkertas-db-v1'
-const empty: DB = { registrations: [], checkins: [] }
+const empty: DB = { registrations: [], checkins: [], events: [] }
 
 function read(): DB {
   try {
     const raw = localStorage.getItem(KEY)
     if (!raw) return empty
     const parsed = JSON.parse(raw) as Partial<DB>
-    return { registrations: parsed.registrations ?? [], checkins: parsed.checkins ?? [] }
+    return { registrations: parsed.registrations ?? [], checkins: parsed.checkins ?? [], events: parsed.events ?? [] }
   } catch {
     return empty
   }
@@ -147,7 +148,7 @@ export function checkIn(ticket: { code: string; eventId: string; name: string; n
   const at = new Date().toISOString()
   const checkin: CheckIn = { code: local.code, eventId: local.eventId, name: local.name, nim: local.nim, at }
   const registrations = db.registrations.map((r) => (r.code === local.code ? { ...r, checkedInAt: at } : r))
-  write({ registrations, checkins: [checkin, ...db.checkins] })
+  write({ ...db, registrations, checkins: [checkin, ...db.checkins] })
   return { kind: 'ok', checkin }
 }
 
@@ -167,8 +168,28 @@ export function issueCertificate(code: string) {
 export function cancelRegistration(code: string) {
   const db = cache
   write({
+    ...db,
     registrations: db.registrations.filter((r) => r.code !== code),
     checkins: db.checkins.filter((c) => c.code !== code),
+  })
+}
+
+/** Acara yang dibuat panitia lewat panel (disimpan lokal, tampil di katalog publik). */
+export function customEvents() {
+  return cache.events
+}
+
+export function addEvent(e: EventItem) {
+  write({ ...cache, events: [e, ...cache.events] })
+}
+
+export function removeEvent(id: string) {
+  const db = cache
+  const codes = new Set(db.registrations.filter((r) => r.eventId === id).map((r) => r.code))
+  write({
+    events: db.events.filter((e) => e.id !== id),
+    registrations: db.registrations.filter((r) => r.eventId !== id),
+    checkins: db.checkins.filter((c) => !codes.has(c.code)),
   })
 }
 

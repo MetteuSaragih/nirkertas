@@ -3,12 +3,13 @@ import { Leaf, Search, SlidersHorizontal } from 'lucide-react'
 import { EventCard } from '../components/EventCard'
 import { TicketIllustration } from '../components/Illustrations'
 import { Button, Eyebrow, Input, Select, categoryMeta } from '../components/ui'
-import { events, type Category } from '../data'
+import { allEvents, type Category } from '../data'
 import { cn } from '../lib/cn'
 
 const categories: Array<'Semua' | Category> = ['Semua', 'Seminar', 'Workshop', 'Pelatihan', 'Webinar']
 
 export function Events() {
+  const events = allEvents()
   const [q, setQ] = useState('')
   const [cat, setCat] = useState<(typeof categories)[number]>('Semua')
   const [mode, setMode] = useState('Semua')

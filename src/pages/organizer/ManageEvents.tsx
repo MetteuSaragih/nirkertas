@@ -3,7 +3,7 @@ import {
   Award,
   CalendarDays,
   CirclePlus,
-  Copy,
+  Trash2,
   Image as ImageIcon,
   Leaf,
   MapPin,
@@ -28,12 +28,23 @@ import {
   Toggle,
   statusTone,
 } from '../../components/ui'
-import { managedEvents, type ManagedEvent } from '../../data'
-import { nf } from '../../lib/cn'
+import { managedEvents, organizer, photos, type EventItem, type ManagedEvent } from '../../data'
+import { nf, nf1 } from '../../lib/cn'
+import { compare } from '../../lib/carbon'
+
+const est = compare()
+import { addEvent, removeEvent, useDB } from '../../lib/store'
+
+const longDate = new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+const shortMonth = new Intl.DateTimeFormat('id-ID', { month: 'short' })
+
+function slugify(t: string) {
+  return t.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'acara'
+}
 
 const tabs = ['Semua', 'Aktif', 'Draf', 'Selesai'] as const
 
-function CreateEventPanel({ onClose, onCreate }: { onClose: () => void; onCreate: (e: ManagedEvent) => void }) {
+function CreateEventPanel({ onClose, onCreate }: { onClose: () => void; onCreate: (e: EventItem) => void }) {
   const [qr, setQr] = useState(true)
   const [cert, setCert] = useState(true)
   const [reminder, setReminder] = useState(true)
@@ -41,17 +52,35 @@ function CreateEventPanel({ onClose, onCreate }: { onClose: () => void; onCreate
   const submit = (ev: FormEvent<HTMLFormElement>) => {
     ev.preventDefault()
     const f = new FormData(ev.currentTarget)
-    onCreate({
-      id: `new-${Date.now()}`,
-      title: String(f.get('judul') || 'Acara baru'),
-      category: (f.get('kategori') as ManagedEvent['category']) || 'Seminar',
-      date: String(f.get('tanggal') || 'Belum dijadwalkan'),
-      location: String(f.get('lokasi') || '—'),
+    const title = String(f.get('judul') || '').trim() || 'Acara baru'
+    const rawDate = String(f.get('tanggal') || '')
+    const d = rawDate ? new Date(`${rawDate}T00:00:00`) : null
+    const desc = String(f.get('deskripsi') || '').trim() || 'Deskripsi acara akan diperbarui oleh panitia.'
+    const mode = (String(f.get('mode') || 'Luring') as EventItem['mode'])
+    const event: EventItem = {
+      id: `${slugify(title)}-${Date.now().toString(36).slice(-4)}`,
+      title,
+      category: (f.get('kategori') as EventItem['category']) || 'Seminar',
+      organizer: organizer.name,
+      date: d ? longDate.format(d) : 'Belum dijadwalkan',
+      day: d ? String(d.getDate()).padStart(2, '0') : '--',
+      month: d ? shortMonth.format(d).replace('.', '').toUpperCase() : '---',
+      time: 'Menyusul',
+      location: String(f.get('lokasi') || '').trim() || 'Menyusul',
+      mode,
+      quota: Math.max(1, Number(f.get('kuota') || 100)),
       registered: 0,
-      quota: Number(f.get('kuota') || 100),
       attended: 0,
-      status: 'Draf',
-    })
+      image: photos.auditorium,
+      imageAlt: 'Ruang auditorium kampus',
+      summary: desc.length > 140 ? desc.slice(0, 137) + '…' : desc,
+      description: desc,
+      speakers: [],
+      agenda: [],
+      status: 'Pendaftaran Dibuka',
+      benefits: [qr ? 'E-tiket QR Code' : '', cert ? 'E-sertifikat' : ''].filter(Boolean),
+    }
+    onCreate(event)
   }
 
   return (
@@ -144,13 +173,13 @@ function CreateEventPanel({ onClose, onCreate }: { onClose: () => void; onCreate
 
           <p className="flex items-start gap-2 rounded-xl bg-lime-50 p-3 text-xs leading-relaxed text-lime-900 ring-1 ring-lime-200">
             <Leaf className="mt-0.5 size-4 shrink-0" aria-hidden />
-            Dengan 100 peserta, acara ini diperkirakan menghemat ± 330 lembar kertas dan 1,5 kg CO2e dibanding proses konvensional.
+            Dengan 100 peserta, acara ini diperkirakan menghindari ± {nf.format(Math.round(est.before.sheetsA4))} lembar setara A4 dan {nf1.format(est.savedG / 1000)} kg CO2e dibanding proses cetak.
           </p>
         </div>
 
         <div className="flex justify-end gap-2 border-t border-slate-100 px-6 py-4">
           <Button variant="secondary" onClick={onClose}>Batal</Button>
-          <Button type="submit">Simpan sebagai draf</Button>
+          <Button type="submit">Terbitkan acara</Button>
         </div>
       </form>
     </div>
@@ -158,7 +187,22 @@ function CreateEventPanel({ onClose, onCreate }: { onClose: () => void; onCreate
 }
 
 export function ManageEvents() {
-  const [items, setItems] = useState(managedEvents)
+  const db = useDB()
+  const custom = new Set(db.events.map((e) => e.id))
+  const items: ManagedEvent[] = [
+    ...db.events.map((e) => ({
+      id: e.id,
+      title: e.title,
+      category: e.category,
+      date: e.date,
+      location: e.location,
+      registered: db.registrations.filter((r) => r.eventId === e.id).length,
+      quota: e.quota,
+      attended: db.checkins.filter((c) => c.eventId === e.id).length,
+      status: e.status,
+    })),
+    ...managedEvents,
+  ]
   const [tab, setTab] = useState<(typeof tabs)[number]>('Semua')
   const [q, setQ] = useState('')
   const [open, setOpen] = useState(false)
@@ -220,26 +264,39 @@ export function ManageEvents() {
                 <p className="text-[11px] text-slate-500">Hadir</p>
               </div>
               <div>
-                <p className="text-sm font-bold text-emerald-700">{nf.format(e.registered * 3)}</p>
-                <p className="text-[11px] text-slate-500">Lembar hemat</p>
+                <p className="text-sm font-bold text-emerald-700">{nf.format(Math.max(0, e.quota - e.registered))}</p>
+                <p className="text-[11px] text-slate-500">Sisa kuota</p>
               </div>
             </div>
             <Progress value={e.registered} max={e.quota} className="mt-4" tone={e.registered >= e.quota ? 'amber' : 'emerald'} />
             <p className="mt-1.5 text-xs text-slate-500">Kuota {nf.format(e.quota)} peserta</p>
 
             <div className="mt-auto flex gap-2 pt-5">
-              <Button size="sm" variant="secondary" className="flex-1">
-                <PencilLine className="size-4" aria-hidden /> Sunting
-              </Button>
+              {custom.has(e.id) ? (
+                <a href={`#/acara/${e.id}`} className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-white px-3.5 text-sm font-semibold text-slate-800 ring-1 ring-slate-200 ring-inset hover:bg-slate-50">
+                  <PencilLine className="size-4" aria-hidden /> Halaman acara
+                </a>
+              ) : (
+                <span className="inline-flex h-9 flex-1 items-center justify-center rounded-lg bg-slate-50 px-3 text-xs font-medium text-slate-500">Data contoh</span>
+              )}
               <a href="#/panel/peserta" className="grid size-9 place-items-center rounded-lg text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50" aria-label={`Peserta ${e.title}`}>
                 <Users className="size-4" />
               </a>
               <a href="#/panel/pindai" className="grid size-9 place-items-center rounded-lg text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50" aria-label={`Pindai presensi ${e.title}`}>
                 <ScanLine className="size-4" />
               </a>
-              <button type="button" className="grid size-9 place-items-center rounded-lg text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50" aria-label={`Duplikat ${e.title}`}>
-                <Copy className="size-4" />
-              </button>
+              {custom.has(e.id) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm(`Hapus "${e.title}" beserta data pendaftarnya?`)) removeEvent(e.id)
+                  }}
+                  className="grid size-9 place-items-center rounded-lg text-rose-700 ring-1 ring-rose-200 hover:bg-rose-50"
+                  aria-label={`Hapus ${e.title}`}
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              )}
             </div>
           </Card>
         ))}
@@ -258,7 +315,7 @@ export function ManageEvents() {
         <CreateEventPanel
           onClose={() => setOpen(false)}
           onCreate={(e) => {
-            setItems((xs) => [e, ...xs])
+            addEvent(e)
             setOpen(false)
             setTab('Semua')
           }}
