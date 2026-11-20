@@ -26,7 +26,7 @@ export type EventItem = {
 }
 
 const u = (id: string) =>
-  `https://images.unsplash.com/photo-${id}?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080`
+  `https://images.unsplash.com/photo-${id}?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=60&w=1080`
 
 export const img = (url: string, w = 1080) => url.replace('w=1080', `w=${w}`)
 
@@ -53,7 +53,7 @@ export const currentUser = {
   initials: 'AR',
 }
 
-export const university = 'Universitas Nusantara'
+export const university = 'Universitas Brawijaya'
 
 export const events: EventItem[] = [
   {

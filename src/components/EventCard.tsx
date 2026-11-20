@@ -16,6 +16,9 @@ export function EventCard({ event }: { event: EventItem }) {
           src={img(event.image, 640)}
           alt={event.imageAlt}
           loading="lazy"
+          decoding="async"
+          width={640}
+          height={400}
           className="size-full object-cover transition duration-500 group-hover:scale-[1.03]"
         />
         <div className="absolute top-3 left-3 rounded-xl bg-white/95 px-2.5 py-1.5 text-center shadow-sm backdrop-blur dark:bg-slate-900/95">

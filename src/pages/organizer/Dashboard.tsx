@@ -5,10 +5,15 @@ import { ChartTooltip, axisProps } from '../../components/charts'
 import { PaperToLeafIllustration } from '../../components/Illustrations'
 import { managedEvents, organizer, recentCheckins, registrationTrend } from '../../data'
 import { nf } from '../../lib/cn'
+import { useDB } from '../../lib/store'
 
 export function Dashboard() {
   const live = managedEvents.find((e) => e.status === 'Berlangsung')!
   const upcoming = managedEvents.filter((e) => e.status === 'Pendaftaran Dibuka' || e.status === 'Kuota Penuh').slice(0, 4)
+  const db = useDB()
+  const regs = db.registrations.length
+  const hadir = db.checkins.length
+  const certs = db.registrations.filter((r) => r.certificateNo).length
 
   return (
     <div className="space-y-6">
@@ -28,10 +33,10 @@ export function Dashboard() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard icon={CalendarRange} label="Acara aktif" value="5" hint="1 berlangsung, 4 pendaftaran" />
-        <StatCard icon={Users} label="Total pendaftar" value={nf.format(2049)} trend="+18%" hint="dibanding bulan lalu" accent="teal" />
-        <StatCard icon={UserCheck} label="Tingkat kehadiran" value="86" unit="%" trend="+4%" hint="rata-rata 3 acara terakhir" />
-        <StatCard icon={Award} label="E-sertifikat terkirim" value={nf.format(843)} hint="0 cetakan kertas" accent="lime" />
+        <StatCard icon={CalendarRange} label="Acara aktif" value={String(upcoming.length + 1)} hint="Data katalog acara" />
+        <StatCard icon={Users} label="Pendaftar tercatat" value={nf.format(regs)} hint="Registrasi di perangkat ini" accent="teal" />
+        <StatCard icon={UserCheck} label="Presensi QR" value={nf.format(hadir)} unit={regs ? ` (${Math.round((hadir / regs) * 100)}%)` : undefined} hint="Hasil pemindaian" />
+        <StatCard icon={Award} label="E-sertifikat diunduh" value={nf.format(certs)} hint="0 cetakan kertas" accent="lime" />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
@@ -39,7 +44,7 @@ export function Dashboard() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="font-semibold text-slate-900 dark:text-slate-100">Tren pendaftaran dan kehadiran</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">8 minggu terakhir, semua acara</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">8 minggu terakhir, semua acara (data contoh)</p>
             </div>
             <div className="flex gap-4 text-xs text-slate-600 dark:text-slate-400">
               <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-emerald-600" /> Pendaftar</span>

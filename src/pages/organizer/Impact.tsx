@@ -1,280 +1,210 @@
-import { useState } from 'react'
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
-import {
-  ArrowDown,
-  CalendarRange,
-  Cloud,
-  Download,
-  Droplets,
-  FileText,
-  Info,
-  Layers,
-  Leaf,
-  Server,
-  TreePine,
-  Users,
-} from 'lucide-react'
-import { Badge, Button, Card, PageHeader, Segmented, StatCard } from '../../components/ui'
+import { useMemo, useState } from 'react'
+import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { ArrowDown, FileText, Info, Leaf, Server, Ticket } from 'lucide-react'
+import { Card, Input, Label, PageHeader, StatCard } from '../../components/ui'
 import { ChartTooltip, axisProps } from '../../components/charts'
-import { PaperToLeafIllustration } from '../../components/Illustrations'
-import { categorySavings, impact, monthlyCo2, opsFootprint, processComparison } from '../../data'
 import { nf, nf1 } from '../../lib/cn'
+import { BASE_DIGITAL, BASE_SCENARIO, GRID_ID, PAPER, compare, swdmKwhPerGB, type Scenario } from '../../lib/carbon'
+import { useDB } from '../../lib/store'
 
-const periods = ['Bulan ini', 'Semester', 'Tahun 2026'] as const
+const nf2 = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2, minimumFractionDigits: 2 })
+
+function NumberField({ id, label, value, onChange, min, max, step = 1, suffix }: { id: string; label: string; value: number; onChange: (v: number) => void; min: number; max: number; step?: number; suffix?: string }) {
+  return (
+    <div>
+      <Label htmlFor={id}>{label}</Label>
+      <div className="relative">
+        <Input
+          id={id}
+          type="number"
+          inputMode="numeric"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => {
+            const v = Number(e.target.value)
+            if (Number.isFinite(v)) onChange(Math.min(max, Math.max(min, v)))
+          }}
+          className={suffix ? 'pr-12' : undefined}
+        />
+        {suffix && <span className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-xs text-slate-400">{suffix}</span>}
+      </div>
+    </div>
+  )
+}
 
 export function Impact() {
-  const [period, setPeriod] = useState<(typeof periods)[number]>('Tahun 2026')
-  const reduction = impact.co2Conventional - impact.co2Digital
-  const pct = Math.round((reduction / impact.co2Conventional) * 100)
-  const maxSheets = Math.max(...categorySavings.map((c) => c.sheets))
+  const [s, setS] = useState<Scenario>(BASE_SCENARIO)
+  const r = useMemo(() => compare(s, BASE_DIGITAL), [s])
+  const set = (k: keyof Scenario) => (v: number) => setS((p) => ({ ...p, [k]: v }))
+  const db = useDB()
+
+  // Data nyata yang tercatat di perangkat ini
+  const tickets = db.registrations.length
+  const checkins = db.checkins.length
+  const certs = db.registrations.filter((x) => x.certificateNo).length
+  const realSheets = tickets * 0.25 + checkins * 0.25 + certs * 1 // tiket A6, tag nama A6, sertifikat A4
+  const realCo2 = realSheets * PAPER.a4Grams * PAPER.efKgPerKg
+
+  const chart = [
+    { name: 'Konvensional (kertas)', value: Number(r.before.co2g.toFixed(1)), color: '#94a3b8' },
+    { name: 'Nirkertas (digital)', value: Number(r.after.co2g.toFixed(1)), color: '#059669' },
+  ]
 
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Analitik keberlanjutan"
-        title="Dampak lingkungan"
-        description="Estimasi penghematan kertas dan emisi CO2e dari digitalisasi tiket, presensi, sertifikat, poster, dan name tag."
-        actions={
-          <>
-            <Segmented options={periods} value={period} onChange={setPeriod} label="Periode" />
-            <Button variant="secondary">
-              <Download className="size-4" aria-hidden /> Laporan PDF
-            </Button>
-          </>
-        }
+        title="Kalkulator dampak CO2e"
+        description="Bandingkan emisi produksi dokumen cetak (before) dengan emisi transfer data aplikasi (after). Ubah parameter sesuai acara Anda."
       />
 
-      {/* Hero summary */}
       <div className="relative overflow-hidden rounded-3xl bg-emerald-950 p-6 text-white sm:p-8">
-        <div className="bg-grid absolute inset-0 opacity-20" aria-hidden />
-        <PaperToLeafIllustration className="absolute right-4 bottom-0 hidden w-72 opacity-90 md:block" />
-        <div className="relative grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
+        <div className="grid gap-6 sm:grid-cols-3">
           <div>
-            <p className="flex items-center gap-2 text-sm font-medium text-emerald-200">
-              <Leaf className="size-4 text-lime-300" aria-hidden /> Estimasi kertas dihemat · Jan–Okt 2026
+            <p className="text-sm text-emerald-200/80">Emisi dihindari per acara</p>
+            <p className="mt-1 text-4xl font-bold tracking-tight">
+              {nf1.format(r.savedG)} <span className="text-lg font-medium text-emerald-200">g CO2e</span>
             </p>
-            <p className="mt-3 text-5xl font-extrabold tracking-tight sm:text-6xl">
-              {nf.format(impact.sheetsSaved)}
-              <span className="ml-2 text-xl font-semibold text-emerald-200">lembar</span>
+            <p className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-lime-300">
+              <ArrowDown className="size-4" aria-hidden /> {nf1.format(r.savedPct)}% lebih rendah
             </p>
-            <div className="mt-6 flex flex-wrap gap-x-8 gap-y-4">
-              {[
-                { icon: Layers, v: `${nf1.format(impact.paperKg)} kg`, l: `≈ ${nf1.format(impact.reams)} rim kertas A4` },
-                { icon: TreePine, v: `${nf1.format(impact.trees)} pohon`, l: 'bahan baku kertas terselamatkan' },
-                { icon: Droplets, v: `${nf.format(impact.waterL)} L`, l: 'air produksi kertas' },
-              ].map(({ icon: Icon, v, l }) => (
-                <div key={l} className="flex items-start gap-3">
-                  <span className="grid size-9 place-items-center rounded-lg bg-white/10 text-lime-300">
-                    <Icon className="size-[18px]" aria-hidden />
-                  </span>
-                  <div>
-                    <p className="font-bold">{v}</p>
-                    <p className="text-xs text-emerald-200/80">{l}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
-          <div className="w-fit rounded-2xl bg-lime-300 p-5 text-emerald-950 md:mr-64">
-            <p className="text-xs font-semibold">Emisi CO2e berkurang</p>
-            <p className="mt-1 flex items-center gap-1 text-4xl font-extrabold">
-              <ArrowDown className="size-7" aria-hidden /> {pct}%
+          <div>
+            <p className="text-sm text-emerald-200/80">Per tahun ({s.eventsPerYear} acara)</p>
+            <p className="mt-1 text-4xl font-bold tracking-tight">
+              {nf2.format(r.yearlySavedKg)} <span className="text-lg font-medium text-emerald-200">kg CO2e</span>
             </p>
-            <p className="text-xs font-medium">{nf1.format(reduction)} kg CO2e dihindari</p>
+          </div>
+          <div>
+            <p className="text-sm text-emerald-200/80">Kertas dihindari per acara</p>
+            <p className="mt-1 text-4xl font-bold tracking-tight">
+              {nf.format(Math.round(r.before.grams))} <span className="text-lg font-medium text-emerald-200">g</span>
+            </p>
+            <p className="mt-1 text-sm text-emerald-200/80">{nf1.format(r.before.sheetsA4)} lembar setara A4</p>
           </div>
         </div>
       </div>
 
-      {/* Metric cards */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <StatCard icon={CalendarRange} label="Total acara" value={nf.format(impact.totalEvents)} hint="38 selesai, 10 aktif" />
-        <StatCard icon={Users} label="Total peserta" value={nf.format(impact.totalParticipants)} hint="dari 34 program studi" accent="teal" />
-        <StatCard icon={FileText} label="Total dokumen digital" value={nf.format(impact.digitalDocs)} hint="tiket, sertifikat, presensi, dll." accent="lime" />
-        <StatCard icon={Leaf} label="Reduksi limbah kertas" value={nf1.format(impact.paperKg)} unit="kg" trend={`−${pct}%`} hint="estimasi berat kertas A4" />
-        <StatCard icon={Server} label="Jejak karbon sistem" value={nf1.format(impact.co2Ops)} unit="kg CO2e" hint="operasional server & email" accent="slate" />
-      </div>
-
-      {/* Before vs after + category */}
-      <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
-        <Card className="p-5 sm:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h2 className="font-semibold text-slate-900 dark:text-slate-100">Estimasi emisi CO2e: sebelum vs sesudah digitalisasi</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">kg CO2e per bulan, seluruh acara</p>
-            </div>
-            <div className="flex gap-6 text-right">
-              <div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Konvensional</p>
-                <p className="font-bold text-slate-700 dark:text-slate-300">{nf1.format(impact.co2Conventional)} kg</p>
-              </div>
-              <div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Paperless</p>
-                <p className="font-bold text-emerald-700 dark:text-emerald-400">{nf1.format(impact.co2Digital)} kg</p>
-              </div>
-            </div>
-          </div>
-          <div className="mt-6 h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyCo2} margin={{ left: -20, right: 4, top: 8 }} barGap={4}>
-                <CartesianGrid vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="month" {...axisProps} />
-                <YAxis {...axisProps} />
-                <Tooltip cursor={{ fill: '#f8fafc' }} content={<ChartTooltip unit=" kg" />} />
-                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12, paddingTop: 12 }} />
-                <Bar dataKey="konvensional" name="Sebelum (konvensional)" fill="#cbd5e1" radius={[6, 6, 0, 0]} maxBarSize={22} />
-                <Bar dataKey="digital" name="Sesudah (paperless)" fill="#10b981" radius={[6, 6, 0, 0]} maxBarSize={22} />
-              </BarChart>
-            </ResponsiveContainer>
+      <div className="grid gap-6 xl:grid-cols-[340px_1fr]">
+        <Card className="p-6">
+          <p className="font-semibold text-slate-900 dark:text-slate-100">Parameter acara</p>
+          <div className="mt-4 space-y-4">
+            <NumberField id="p-peserta" label="Jumlah pendaftar" value={s.participants} onChange={set('participants')} min={1} max={10000} />
+            <NumberField
+              id="p-hadir"
+              label="Tingkat kehadiran"
+              value={Math.round(s.attendanceRate * 100)}
+              onChange={(v) => setS((p) => ({ ...p, attendanceRate: v / 100 }))}
+              min={0}
+              max={100}
+              suffix="%"
+            />
+            <NumberField id="p-poster" label="Poster A3 yang biasa dicetak" value={s.posters} onChange={set('posters')} min={0} max={500} />
+            <NumberField id="p-baris" label="Baris per lembar daftar hadir" value={s.rowsPerAttendanceSheet} onChange={set('rowsPerAttendanceSheet')} min={5} max={60} />
+            <NumberField id="p-acara" label="Acara per tahun" value={s.eventsPerYear} onChange={set('eventsPerYear')} min={1} max={500} />
           </div>
         </Card>
 
-        <Card className="p-5 sm:p-6">
-          <h2 className="font-semibold text-slate-900 dark:text-slate-100">Penghematan per jenis dokumen</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Lembar kertas yang tidak dicetak</p>
-          <ul className="mt-6 space-y-5">
-            {categorySavings.map((c) => (
-              <li key={c.name}>
-                <div className="flex items-baseline justify-between gap-2 text-sm">
-                  <span className="font-medium text-slate-800 dark:text-slate-200">{c.name}</span>
-                  <span className="text-slate-500 dark:text-slate-400">
-                    <span className="font-semibold text-slate-900 dark:text-slate-100">{nf.format(c.sheets)}</span> lbr · {nf1.format(c.co2)} kg CO2e
-                  </span>
-                </div>
-                <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                  <div className="h-full rounded-full" style={{ width: `${(c.sheets / maxSheets) * 100}%`, background: c.color }} />
-                </div>
-              </li>
+        <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <StatCard icon={FileText} label="Before: produksi kertas" value={nf1.format(r.before.co2g)} unit="g CO2e" accent="slate" hint={`${nf.format(Math.round(r.before.grams))} g kertas × ${nf2.format(PAPER.efKgPerKg)} kg CO2e/kg`} />
+            <StatCard icon={Server} label="After: transfer data" value={nf1.format(r.after.co2g)} unit="g CO2e" hint={`${nf2.format(r.after.bytes / 1e6)} MB × ${nf2.format(swdmKwhPerGB())} kWh/GB × ${nf2.format(GRID_ID)} g/kWh`} />
+          </div>
+
+          <Card className="p-6">
+            <p className="font-semibold text-slate-900 dark:text-slate-100">Perbandingan emisi per acara</p>
+            <div className="mt-4 h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chart} layout="vertical" margin={{ left: 16, right: 24 }}>
+                  <CartesianGrid horizontal={false} stroke="#e2e8f0" />
+                  <XAxis type="number" {...axisProps} unit=" g" />
+                  <YAxis type="category" dataKey="name" width={150} {...axisProps} />
+                  <Tooltip content={<ChartTooltip unit=" g CO2e" />} cursor={{ fill: 'rgba(16,185,129,0.06)' }} />
+                  <Bar dataKey="value" name="Emisi" radius={[0, 8, 8, 0]} isAnimationActive={false}>
+                    {chart.map((c) => (
+                      <Cell key={c.name} fill={c.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          <Card className="overflow-hidden">
+            <div className="border-b border-slate-100 px-6 py-4 dark:border-slate-800">
+              <p className="font-semibold text-slate-900 dark:text-slate-100">Rincian dokumen yang digantikan</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[560px] text-left text-sm">
+                <thead className="bg-slate-50 text-xs font-semibold text-slate-500 uppercase dark:bg-slate-800/60 dark:text-slate-400">
+                  <tr>
+                    <th className="px-6 py-3">Dokumen</th>
+                    <th className="px-4 py-3 text-right">Jumlah</th>
+                    <th className="px-4 py-3 text-right">Setara A4</th>
+                    <th className="px-4 py-3 text-right">Kertas (g)</th>
+                    <th className="px-6 py-3 text-right">g CO2e</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {r.before.rows.map((d) => (
+                    <tr key={d.key}>
+                      <td className="px-6 py-3 text-slate-800 dark:text-slate-200">
+                        {d.label} <span className="text-xs text-slate-400">({d.size})</span>
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums">{nf.format(d.qty)}</td>
+                      <td className="px-4 py-3 text-right tabular-nums">{nf2.format(d.sheetsA4)}</td>
+                      <td className="px-4 py-3 text-right tabular-nums">{nf1.format(d.grams)}</td>
+                      <td className="px-6 py-3 text-right font-semibold tabular-nums">{nf1.format(d.co2g)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card className="p-6">
+          <p className="flex items-center gap-2 font-semibold text-slate-900 dark:text-slate-100">
+            <Ticket className="size-4 text-emerald-600" aria-hidden /> Data nyata di perangkat ini
+          </p>
+          <dl className="mt-4 grid grid-cols-3 gap-4 text-center">
+            {[
+              ['E-tiket terbit', tickets],
+              ['Presensi QR', checkins],
+              ['E-sertifikat', certs],
+            ].map(([l, v]) => (
+              <div key={l as string} className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800">
+                <dd className="text-2xl font-bold text-slate-900 dark:text-slate-100">{v}</dd>
+                <dt className="text-xs text-slate-500 dark:text-slate-400">{l}</dt>
+              </div>
             ))}
-          </ul>
-          <p className="mt-6 rounded-xl bg-slate-50 p-3 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-            Tiket cetak dan sertifikat menyumbang <b className="text-slate-700 dark:text-slate-300">63%</b> dari total penghematan kertas.
+          </dl>
+          <p className="mt-4 text-sm text-slate-600 dark:text-slate-400">
+            Setara {nf2.format(realSheets)} lembar A4 dan ± <b>{nf1.format(realCo2)} g CO2e</b> produksi kertas yang tidak terjadi (tiket dan tag nama A6, sertifikat A4).
           </p>
         </Card>
-      </div>
 
-      {/* Category chart + ops footprint */}
-      <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
-        <Card className="p-5 sm:p-6">
-          <h2 className="font-semibold text-slate-900 dark:text-slate-100">Emisi yang dihindari per kategori</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">kg CO2e: tiket, daftar hadir, sertifikat, poster, dan name tag</p>
-          <div className="mt-6 h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={categorySavings} layout="vertical" margin={{ left: 8, right: 24 }}>
-                <CartesianGrid horizontal={false} stroke="#f1f5f9" />
-                <XAxis type="number" {...axisProps} />
-                <YAxis type="category" dataKey="name" width={112} {...axisProps} />
-                <Tooltip cursor={{ fill: '#f8fafc' }} content={<ChartTooltip unit=" kg CO2e" />} />
-                <Bar dataKey="co2" name="CO2e dihindari" radius={[0, 8, 8, 0]} maxBarSize={26}>
-                  {categorySavings.map((c) => (
-                    <Cell key={c.name} fill={c.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-
-        <Card className="p-5 sm:p-6">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h2 className="font-semibold text-slate-900 dark:text-slate-100">Jejak karbon operasional sistem</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Digital juga beremisi, dan kami menghitungnya</p>
-            </div>
-            <Cloud className="size-5 text-slate-400" aria-hidden />
-          </div>
-          <div className="relative mt-4 h-44">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={opsFootprint} dataKey="value" nameKey="name" innerRadius={52} outerRadius={78} paddingAngle={3} stroke="none">
-                  {opsFootprint.map((o) => (
-                    <Cell key={o.name} fill={o.color} />
-                  ))}
-                </Pie>
-                <Tooltip content={<ChartTooltip unit=" kg CO2e" />} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
-              <div>
-                <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{nf1.format(impact.co2Ops)}</p>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">kg CO2e/tahun</p>
-              </div>
-            </div>
-          </div>
-          <ul className="mt-4 space-y-2">
-            {opsFootprint.map((o) => (
-              <li key={o.name} className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                  <span className="size-2.5 rounded-full" style={{ background: o.color }} /> {o.name}
-                </span>
-                <span className="font-semibold text-slate-900 dark:text-slate-100">{nf1.format(o.value)} kg</span>
-              </li>
-            ))}
-            <li className="flex items-center justify-between border-t border-slate-100 pt-2 text-sm dark:border-slate-800">
-              <span className="text-slate-600 dark:text-slate-400">Dokumen digital (0,3 g/dok)</span>
-              <span className="font-semibold text-slate-900 dark:text-slate-100">{nf1.format(impact.co2Digital - impact.co2Ops)} kg</span>
+        <Card className="p-6">
+          <p className="flex items-center gap-2 font-semibold text-slate-900 dark:text-slate-100">
+            <Info className="size-4 text-emerald-600" aria-hidden /> Metode dan sumber
+          </p>
+          <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-400">
+            <li>
+              <b>Before:</b> 1 lembar A4 80 g/m² = {nf2.format(PAPER.a4Grams)} g. Faktor emisi kertas primer 1.339,32 kg CO2e/ton (UK DESNZ, conversion factors 2024).
             </li>
+            <li>
+              <b>After:</b> Sustainable Web Design Model v4, {nf2.format(swdmKwhPerGB())} kWh/GB (operasional + embodied), intensitas listrik Indonesia 2024 sebesar 680,25 g CO2e/kWh (Ember, via Our World in Data).
+            </li>
+            <li>Bobot transfer per halaman diukur dari build produksi. Pencetakan (tinta, listrik printer) dan distribusi tidak dihitung.</li>
           </ul>
-        </Card>
-      </div>
-
-      {/* Process comparison */}
-      <Card className="overflow-hidden">
-        <div className="flex flex-col gap-2 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <div>
-            <h2 className="font-semibold text-slate-900 dark:text-slate-100">Perbandingan proses konvensional vs paperless</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Dampak per tahapan administrasi acara</p>
-          </div>
-          <Badge tone="emerald">Rata-rata 15× lebih cepat saat presensi</Badge>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="border-y border-slate-100 bg-slate-50 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-400">
-              <tr>
-                <th scope="col" className="px-6 py-3">Tahapan</th>
-                <th scope="col" className="px-6 py-3">Konvensional</th>
-                <th scope="col" className="px-6 py-3">Paperless (nirkertas)</th>
-                <th scope="col" className="px-6 py-3 text-right">Efisiensi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {processComparison.map((r) => (
-                <tr key={r.step}>
-                  <th scope="row" className="px-6 py-4 font-semibold text-slate-900 dark:text-slate-100">{r.step}</th>
-                  <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{r.conventional}</td>
-                  <td className="px-6 py-4 text-slate-800 dark:text-slate-200">{r.paperless}</td>
-                  <td className="px-6 py-4 text-right">
-                    <Badge tone="lime">{r.gain}</Badge>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
-      {/* Methodology */}
-      <div className="flex gap-4 rounded-2xl bg-white p-5 ring-1 ring-slate-200/80 dark:bg-slate-900 dark:ring-slate-700/80">
-        <Info className="mt-0.5 size-5 shrink-0 text-emerald-600" aria-hidden />
-        <div className="text-sm text-slate-600 dark:text-slate-400">
-          <p className="font-semibold text-slate-900 dark:text-slate-100">Asumsi perhitungan</p>
-          <p className="mt-1 leading-relaxed">
-            1 lembar A4 80 gsm ≈ 5 g kertas dan ≈ 4,6 g CO2e (produksi dan pencetakan). 1 dokumen digital ≈ 0,3 g CO2e
-            (pengiriman dan penyimpanan). 1 pohon ≈ 8.333 lembar; ± 10 L air per lembar. Poster dihitung setara A4. Angka bersifat
-            estimasi untuk edukasi dan pelaporan internal organisasi.
+          <p className="mt-3 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <Leaf className="size-4 text-emerald-600" aria-hidden /> Angka adalah estimasi berbasis skenario, bukan hasil pengukuran langsung di acara.
           </p>
-        </div>
+        </Card>
       </div>
     </div>
   )

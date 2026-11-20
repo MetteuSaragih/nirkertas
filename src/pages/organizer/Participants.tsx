@@ -1,58 +1,68 @@
 import { useMemo, useState } from 'react'
-import { Award, CircleCheck, Clock, Download, Search, Send, UserCheck, Users, UserX } from 'lucide-react'
-import { Avatar, Badge, Button, Card, Input, PageHeader, Select, StatCard } from '../../components/ui'
-import { managedEvents, participants, type Participant } from '../../data'
-import { cn } from '../../lib/cn'
+import { Award, CircleCheck, Clock, Download, Search, UserCheck, Users } from 'lucide-react'
+import { Avatar, Badge, Button, ButtonLink, Card, Input, PageHeader, Select, StatCard } from '../../components/ui'
+import { events } from '../../data'
+import { formatDateTime, useDB, type Registration } from '../../lib/store'
 
-const statusTone = { Hadir: 'emerald', Terdaftar: 'slate', Batal: 'rose' } as const
+type Status = 'Semua' | 'Hadir' | 'Terdaftar'
+
+function toCsv(rows: Registration[]) {
+  const head = ['kode_tiket', 'nama', 'nim', 'prodi', 'angkatan', 'email', 'terdaftar', 'check_in', 'no_sertifikat']
+  const esc = (v: string) => `"${v.replace(/"/g, '""')}"`
+  const body = rows.map((r) =>
+    [r.code, r.name, r.nim, r.prodi, r.angkatan, r.email, r.registeredAt, r.checkedInAt ?? '', r.certificateNo ?? ''].map(esc).join(','),
+  )
+  return [head.join(','), ...body].join('\r\n')
+}
 
 export function Participants() {
-  const [eventId, setEventId] = useState('dies-natalis')
+  const { registrations } = useDB()
+  const [eventId, setEventId] = useState(events[0].id)
   const [q, setQ] = useState('')
-  const [status, setStatus] = useState<'Semua' | Participant['status']>('Semua')
-  const [picked, setPicked] = useState<Set<string>>(new Set())
+  const [status, setStatus] = useState<Status>('Semua')
+
+  const all = registrations.filter((r) => r.eventId === eventId)
+  const hadir = all.filter((r) => r.checkedInAt).length
+  const sertifikat = all.filter((r) => r.certificateNo).length
 
   const list = useMemo(
     () =>
-      participants.filter(
+      all.filter(
         (p) =>
-          (status === 'Semua' || p.status === status) &&
-          `${p.name} ${p.nim} ${p.prodi}`.toLowerCase().includes(q.toLowerCase()),
+          (status === 'Semua' || (status === 'Hadir' ? p.checkedInAt : !p.checkedInAt)) &&
+          `${p.name} ${p.nim} ${p.prodi} ${p.code}`.toLowerCase().includes(q.toLowerCase()),
       ),
-    [q, status],
+    [all, q, status],
   )
 
-  const allPicked = list.length > 0 && list.every((p) => picked.has(p.id))
-  const toggleAll = () => setPicked(allPicked ? new Set() : new Set(list.map((p) => p.id)))
-  const toggle = (id: string) =>
-    setPicked((s) => {
-      const n = new Set(s)
-      if (n.has(id)) n.delete(id)
-      else n.add(id)
-      return n
-    })
+  function exportCsv() {
+    const blob = new Blob(['﻿' + toCsv(all)], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `peserta-${eventId}.csv`
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Daftar peserta"
-        description="Pantau pendaftaran dan kehadiran secara real-time. Tidak ada lagi rekap daftar hadir manual."
+        description="Pendaftaran dan kehadiran yang tercatat di perangkat ini. Tidak ada lagi rekap daftar hadir manual."
         actions={
-          <>
-            <Button variant="secondary">
-              <Download className="size-4" aria-hidden /> Ekspor CSV
-            </Button>
-            <Button>
-              <Send className="size-4" aria-hidden /> Kirim e-sertifikat
-            </Button>
-          </>
+          <Button variant="secondary" onClick={exportCsv} disabled={all.length === 0}>
+            <Download className="size-4" aria-hidden /> Ekspor CSV
+          </Button>
         }
       />
 
       <div className="max-w-md">
-        <label htmlFor="pilih-acara" className="mb-1.5 block text-xs font-semibold tracking-wider text-slate-500 uppercase">Acara</label>
+        <label htmlFor="pilih-acara" className="mb-1.5 block text-xs font-semibold tracking-wider text-slate-500 uppercase">
+          Acara
+        </label>
         <Select id="pilih-acara" value={eventId} onChange={(e) => setEventId(e.target.value)}>
-          {managedEvents.filter((e) => e.status !== 'Draf').map((e) => (
+          {events.map((e) => (
             <option key={e.id} value={e.id}>
               {e.title} · {e.date}
             </option>
@@ -61,52 +71,46 @@ export function Participants() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard icon={Users} label="Terdaftar" value="286" hint="Kuota 300 peserta" />
-        <StatCard icon={UserCheck} label="Sudah hadir" value="214" hint="75% dari pendaftar" accent="lime" />
-        <StatCard icon={Clock} label="Belum hadir" value="64" hint="Check-in ditutup 09.30" accent="slate" />
-        <StatCard icon={Award} label="Sertifikat terkirim" value="2" hint="212 menunggu pengiriman" accent="teal" />
+        <StatCard icon={Users} label="Terdaftar" value={String(all.length)} hint="Pendaftar di perangkat ini" />
+        <StatCard icon={UserCheck} label="Sudah hadir" value={String(hadir)} hint={all.length ? `${Math.round((hadir / all.length) * 100)}% dari pendaftar` : '—'} accent="lime" />
+        <StatCard icon={Clock} label="Belum hadir" value={String(all.length - hadir)} hint="Belum dipindai" accent="slate" />
+        <StatCard icon={Award} label="Sertifikat diunduh" value={String(sertifikat)} hint="Oleh peserta" accent="teal" />
       </div>
 
       <Card className="overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-slate-100 p-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative sm:w-80">
             <Search className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-slate-400" aria-hidden />
-            <label htmlFor="cari-peserta" className="sr-only">Cari peserta</label>
-            <Input id="cari-peserta" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari nama, NIM, atau prodi…" className="pl-10" />
+            <label htmlFor="cari-peserta" className="sr-only">
+              Cari peserta
+            </label>
+            <Input id="cari-peserta" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari nama, NIM, prodi, atau kode…" className="pl-10" />
           </div>
-          <div className="flex items-center gap-2">
-            {picked.size > 0 && <span className="text-sm text-slate-600">{picked.size} dipilih</span>}
-            <label htmlFor="status" className="sr-only">Status</label>
-            <Select id="status" value={status} onChange={(e) => setStatus(e.target.value as typeof status)} className="w-40">
-              <option value="Semua">Semua status</option>
-              <option value="Hadir">Hadir</option>
-              <option value="Terdaftar">Terdaftar</option>
-              <option value="Batal">Batal</option>
-            </Select>
-          </div>
+          <label htmlFor="status" className="sr-only">
+            Status
+          </label>
+          <Select id="status" value={status} onChange={(e) => setStatus(e.target.value as Status)} className="w-40">
+            <option value="Semua">Semua status</option>
+            <option value="Hadir">Hadir</option>
+            <option value="Terdaftar">Belum hadir</option>
+          </Select>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] text-left text-sm">
             <thead className="bg-slate-50 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:bg-slate-800/60 dark:text-slate-400">
               <tr>
-                <th scope="col" className="w-10 px-4 py-3">
-                  <input type="checkbox" checked={allPicked} onChange={toggleAll} aria-label="Pilih semua peserta" className="size-4 accent-emerald-600" />
-                </th>
                 <th scope="col" className="px-4 py-3">Peserta</th>
                 <th scope="col" className="px-4 py-3">NIM</th>
                 <th scope="col" className="px-4 py-3">Program studi</th>
+                <th scope="col" className="px-4 py-3">Kode tiket</th>
                 <th scope="col" className="px-4 py-3">Status</th>
                 <th scope="col" className="px-4 py-3">Check-in</th>
-                <th scope="col" className="px-4 py-3">Sertifikat</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {list.map((p) => (
-                <tr key={p.id} className={cn('transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-800/50', picked.has(p.id) && 'bg-emerald-50/50 dark:bg-emerald-900/20')}>
-                  <td className="px-4 py-3">
-                    <input type="checkbox" checked={picked.has(p.id)} onChange={() => toggle(p.id)} aria-label={`Pilih ${p.name}`} className="size-4 accent-emerald-600" />
-                  </td>
+                <tr key={p.code} className="transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-800/50">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <Avatar name={p.name} />
@@ -118,50 +122,37 @@ export function Participants() {
                   </td>
                   <td className="px-4 py-3 font-mono text-xs text-slate-600 dark:text-slate-400">{p.nim}</td>
                   <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{p.prodi}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-slate-600 dark:text-slate-400">{p.code}</td>
                   <td className="px-4 py-3">
-                    <Badge tone={statusTone[p.status]}>
-                      {p.status === 'Hadir' ? <CircleCheck className="size-3.5" aria-hidden /> : p.status === 'Batal' ? <UserX className="size-3.5" aria-hidden /> : null}
-                      {p.status}
+                    <Badge tone={p.checkedInAt ? 'emerald' : 'slate'}>
+                      {p.checkedInAt && <CircleCheck className="size-3.5" aria-hidden />}
+                      {p.checkedInAt ? 'Hadir' : 'Terdaftar'}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{p.checkIn ? `${p.checkIn} WIB` : '—'}</td>
-                  <td className="px-4 py-3">
-                    {p.certificate === 'Terkirim' ? (
-                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                        <CircleCheck className="size-4" aria-hidden /> Terkirim
-                      </span>
-                    ) : p.certificate === 'Belum' ? (
-                      <button type="button" className="text-xs font-semibold text-emerald-700 hover:underline dark:text-emerald-400">Kirim</button>
-                    ) : (
-                      <span className="text-slate-400">—</span>
-                    )}
-                  </td>
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{p.checkedInAt ? formatDateTime(p.checkedInAt) : '—'}</td>
                 </tr>
               ))}
               {list.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-sm text-slate-500 dark:text-slate-400">
-                    Tidak ada peserta yang cocok dengan pencarian.
+                  <td colSpan={6} className="px-4 py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+                    {all.length === 0 ? (
+                      <>
+                        Belum ada pendaftar untuk acara ini di perangkat ini.{' '}
+                        <ButtonLink to={`/acara/${eventId}`} variant="ghost" size="sm">
+                          Buka halaman pendaftaran
+                        </ButtonLink>
+                      </>
+                    ) : (
+                      'Tidak ada peserta yang cocok dengan pencarian.'
+                    )}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-        <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
-          <span>Menampilkan {list.length} dari 286 peserta</span>
-          <div className="flex gap-1">
-            {[1, 2, 3, '…', 21].map((n, i) => (
-              <button
-                key={i}
-                type="button"
-                className={cn('grid size-8 place-items-center rounded-lg', n === 1 ? 'bg-emerald-950 font-semibold text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800')}
-                aria-current={n === 1 ? 'page' : undefined}
-              >
-                {n}
-              </button>
-            ))}
-          </div>
+        <div className="border-t border-slate-100 px-4 py-3 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
+          Menampilkan {list.length} dari {all.length} peserta
         </div>
       </Card>
     </div>

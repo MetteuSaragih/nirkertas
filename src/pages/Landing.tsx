@@ -76,7 +76,10 @@ export function Landing() {
           <div className="relative mx-auto w-full max-w-md lg:max-w-none">
             <div className="relative overflow-hidden rounded-[28px] shadow-lift">
               <img
-                src={img(photos.hallStanding, 1080)}
+                src={img(photos.hallStanding, 800)}
+                width={800}
+                height={800}
+                fetchPriority="high"
                 alt="Peserta berdiri di aula kampus sebelum seminar dimulai"
                 className="aspect-[4/5] w-full object-cover sm:aspect-[5/5]"
               />
@@ -89,7 +92,7 @@ export function Landing() {
             </div>
 
             {/* Floating ticket */}
-            <div className="absolute -bottom-10 -left-4 w-56 motion-safe:animate-float sm:-left-10 sm:w-64">
+            <div className="absolute -bottom-10 -left-4 w-56 sm:-left-10 sm:w-64">
               <div className="rounded-2xl bg-white p-4 shadow-lift ring-1 ring-slate-200/80">
                 <div className="flex items-center justify-between">
                   <p className="text-[11px] font-bold tracking-widest text-emerald-700 uppercase">E-Tiket</p>
@@ -216,7 +219,7 @@ export function Landing() {
 
       {/* Impact band */}
       <section className="relative overflow-hidden bg-emerald-950">
-        <img src={img(photos.campusTrees, 1600)} alt="" className="absolute inset-0 size-full object-cover opacity-20" />
+        <img src={img(photos.campusTrees, 1000)} alt="" loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover opacity-20" />
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-950 via-emerald-950/90 to-emerald-950/60" />
         <div className="relative mx-auto grid max-w-7xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_1.2fr] lg:px-8">
           <div>

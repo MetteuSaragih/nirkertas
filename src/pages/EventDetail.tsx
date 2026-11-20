@@ -16,11 +16,16 @@ import {
 import { Avatar, Badge, Button, ButtonLink, Card, CategoryBadge, Input, Label, Progress, Select } from '../components/ui'
 import { currentUser, getEvent, img } from '../data'
 import { nf } from '../lib/cn'
+import { QRCode } from '../components/QRCode'
+import { register, useDB, type Registration } from '../lib/store'
+import { encodeTicket } from '../lib/ticket'
 
 export function EventDetail({ id }: { id: string }) {
   const event = getEvent(id)
-  const [done, setDone] = useState(false)
+  const [done, setDone] = useState<Registration | null>(null)
+  const [dupNotice, setDupNotice] = useState(false)
   const [agree, setAgree] = useState(true)
+  const db = useDB()
 
   if (!event) {
     return (
@@ -33,17 +38,29 @@ export function EventDetail({ id }: { id: string }) {
     )
   }
 
-  const full = event.registered >= event.quota
-  const onSubmit = (e: FormEvent) => {
+  const localCount = db.registrations.filter((r) => r.eventId === event.id).length
+  const registered = event.registered + localCount
+  const full = registered >= event.quota
+  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setDone(true)
+    const f = new FormData(e.currentTarget)
+    const res = register({
+      eventId: event.id,
+      name: String(f.get('nama') ?? ''),
+      nim: String(f.get('nim') ?? ''),
+      email: String(f.get('email') ?? ''),
+      prodi: String(f.get('prodi') ?? ''),
+      angkatan: String(f.get('angkatan') ?? ''),
+    })
+    setDupNotice(!res.ok)
+    setDone(res.registration)
   }
 
   return (
     <div>
       {/* Banner */}
       <section className="relative h-64 overflow-hidden bg-emerald-950 sm:h-80">
-        <img src={img(event.image, 1600)} alt={event.imageAlt} className="absolute inset-0 size-full object-cover opacity-60" />
+        <img src={img(event.image, 1000)} alt={event.imageAlt} className="absolute inset-0 size-full object-cover opacity-60" />
         <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/40 to-transparent" />
         <div className="relative mx-auto flex h-full max-w-7xl flex-col justify-between px-4 py-6 sm:px-6 lg:px-8">
           <a href="#/acara" className="inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-sm font-medium text-white ring-1 ring-white/20 backdrop-blur hover:bg-white/20">
@@ -146,18 +163,26 @@ export function EventDetail({ id }: { id: string }) {
                 <span className="mx-auto grid size-14 place-items-center rounded-full bg-emerald-100 text-emerald-700">
                   <CircleCheck className="size-7" aria-hidden />
                 </span>
-                <h2 className="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-100">Pendaftaran berhasil</h2>
+                <h2 className="mt-4 text-lg font-semibold text-slate-900 dark:text-slate-100">
+                  {dupNotice ? 'NIM ini sudah terdaftar' : 'Pendaftaran berhasil'}
+                </h2>
                 <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-                  E-tiket dengan QR Code sudah dikirim ke <span className="font-medium text-slate-700 dark:text-slate-300">{currentUser.email}</span> dan tersimpan di akunmu.
+                  {dupNotice
+                    ? 'Satu NIM hanya dapat mendaftar sekali per acara. Berikut e-tiket yang sudah diterbitkan.'
+                    : 'E-tiket tersimpan di perangkat ini dan dapat dibuka kapan saja di menu Tiket Saya.'}
                 </p>
-                <div className="mt-5 rounded-xl bg-slate-50 p-4 text-left text-sm dark:bg-slate-800">
+                <div className="mx-auto mt-5 w-44 rounded-xl bg-white p-2 ring-1 ring-slate-200">
+                  <QRCode value={encodeTicket(done)} className="size-full" label={`QR e-tiket ${done.code}`} />
+                </div>
+                <div className="mt-4 rounded-xl bg-slate-50 p-4 text-left text-sm dark:bg-slate-800">
                   <p className="text-xs text-slate-500 dark:text-slate-400">Kode tiket</p>
-                  <p className="font-mono font-semibold text-slate-900 dark:text-slate-100">NKT-{event.id.slice(0, 4).toUpperCase()}-{String(event.registered + 1).padStart(4, '0')}</p>
+                  <p className="font-mono font-semibold text-slate-900 dark:text-slate-100">{done.code}</p>
+                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{done.name} · NIM {done.nim}</p>
                 </div>
                 <ButtonLink to="/tiket" className="mt-5 w-full">
                   <Ticket className="size-4" aria-hidden /> Lihat E-Tiket
                 </ButtonLink>
-                <button type="button" onClick={() => setDone(false)} className="mt-3 text-sm font-medium text-slate-500 hover:text-slate-800">
+                <button type="button" onClick={() => setDone(null)} className="mt-3 text-sm font-medium text-slate-500 hover:text-slate-800">
                   Kembali ke formulir
                 </button>
               </div>
@@ -170,26 +195,26 @@ export function EventDetail({ id }: { id: string }) {
                 <div className="mt-4">
                   <div className="mb-2 flex justify-between text-xs">
                     <span className="inline-flex items-center gap-1.5 text-slate-500">
-                      <Users className="size-3.5" aria-hidden /> {nf.format(event.registered)} terdaftar
+                      <Users className="size-3.5" aria-hidden /> {nf.format(registered)} terdaftar
                     </span>
                     <span className="font-semibold text-slate-700">Kuota {nf.format(event.quota)}</span>
                   </div>
-                  <Progress value={event.registered} max={event.quota} tone={full ? 'amber' : 'emerald'} />
+                  <Progress value={registered} max={event.quota} tone={full ? 'amber' : 'emerald'} />
                 </div>
 
                 <form onSubmit={onSubmit} className="mt-6 space-y-4">
                   <div>
                     <Label htmlFor="nama">Nama lengkap</Label>
-                    <Input id="nama" defaultValue={currentUser.name} required />
+                    <Input id="nama" name="nama" placeholder={currentUser.name} required minLength={3} autoComplete="name" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label htmlFor="nim">NIM</Label>
-                      <Input id="nim" defaultValue={currentUser.nim} inputMode="numeric" required />
+                      <Input id="nim" name="nim" placeholder={currentUser.nim} inputMode="numeric" required pattern="[0-9]{8,15}" title="NIM berupa 8-15 digit angka" />
                     </div>
                     <div>
                       <Label htmlFor="angkatan">Angkatan</Label>
-                      <Select id="angkatan" defaultValue="2022">
+                      <Select id="angkatan" name="angkatan" defaultValue="2022">
                         {['2020', '2021', '2022', '2023', '2024', '2025'].map((y) => (
                           <option key={y}>{y}</option>
                         ))}
@@ -198,11 +223,11 @@ export function EventDetail({ id }: { id: string }) {
                   </div>
                   <div>
                     <Label htmlFor="email">Email kampus</Label>
-                    <Input id="email" type="email" defaultValue={currentUser.email} required />
+                    <Input id="email" name="email" type="email" placeholder={currentUser.email} required />
                   </div>
                   <div>
                     <Label htmlFor="prodi">Program studi</Label>
-                    <Input id="prodi" defaultValue={currentUser.prodi} required />
+                    <Input id="prodi" name="prodi" placeholder={currentUser.prodi} required />
                   </div>
                   <label className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400">
                     <input
@@ -220,7 +245,7 @@ export function EventDetail({ id }: { id: string }) {
 
                 <ul className="mt-6 space-y-2.5 border-t border-slate-100 pt-5 text-xs text-slate-500">
                   <li className="flex items-center gap-2">
-                    <Ticket className="size-4 text-emerald-600" aria-hidden /> E-tiket QR Code dikirim instan
+                    <Ticket className="size-4 text-emerald-600" aria-hidden /> E-tiket QR Code terbit instan
                   </li>
                   <li className="flex items-center gap-2">
                     <Award className="size-4 text-emerald-600" aria-hidden /> E-sertifikat tersedia setelah presensi
