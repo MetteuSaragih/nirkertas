@@ -99,47 +99,52 @@ export function beforeEvent(s: Scenario) {
 /* ---------- Kondisi setelah sistem (after): transfer data ---------- */
 
 /**
- * Bobot transfer (byte terkompresi, hasil pengukuran build produksi; lihat Bab IV).
- * shell  = HTML + JS entry + CSS (dimuat pada setiap kunjungan tanpa cache)
- * chunk  = kode halaman yang dimuat sesuai kebutuhan (code splitting)
+ * Bobot transfer per halaman (byte terkompresi Brotli), diukur pada situs produksi
+ * https://nirkertas.vercel.app (20 November 2026) dengan Resource Timing API, kunjungan tanpa cache.
+ * Nilai = HTML + seluruh JS/CSS yang dimuat rute tersebut + gambar yang dimuat setelah halaman digulir penuh.
  */
 export const PAGE_WEIGHT = {
-  shell: 120_000,
-  eventDetail: 60_000, // chunk halaman + foto banner 1.000 px
-  ticket: 25_000,
-  certificate: 10_000,
-  organizerShell: 8_000,
-  scanner: 10_000,
-  scannerFallback: 50_000, // pustaka jsQR, hanya bila BarcodeDetector tidak tersedia
-  dashboard: 10_000,
-  participants: 6_000,
-  impact: 120_000, // termasuk pustaka grafik
+  landing: 358_545,
+  events: 473_254,
+  eventDetail: 193_006,
+  ticket: 119_447, // 110.005 kode + 9.442 thumbnail AVIF
+  certificate: 110_509,
+  organizerEvents: 114_271,
+  organizerDashboard: 216_699,
+  participants: 112_238,
+  scanner: 113_385,
+  scannerFallback: 42_839, // pustaka jsQR, dimuat hanya bila BarcodeDetector tidak tersedia
+  impact: 217_882,
+  cachedVisit: 1_054, // kunjungan ulang: aset immutable diambil dari cache, hanya HTML
 }
 
 export type DigitalAssumptions = {
-  participantSessions: number // sesi tanpa cache per peserta (daftar, lalu ambil sertifikat)
-  organizerSessions: number // sesi panitia per acara
-  fallbackShare: number // porsi sesi pemindai yang memakai jsQR
+  cached: boolean // false = setiap kunjungan dihitung tanpa cache (batas atas)
+  fallbackShare: number // porsi sesi pemindai yang memuat jsQR
+  scannerDevices: number // perangkat panitia yang memindai
 }
 
-export const BASE_DIGITAL: DigitalAssumptions = {
-  participantSessions: 2,
-  organizerSessions: 6,
-  fallbackShare: 0.5,
-}
+export const BASE_DIGITAL: DigitalAssumptions = { cached: false, fallbackShare: 1, scannerDevices: 2 }
 
+/**
+ * Perjalanan pengguna per acara.
+ * Peserta: (1) buka katalog, (2) buka detail & daftar, (3) buka e-tiket setelah daftar,
+ *          (4) tampilkan e-tiket saat hadir, (5) unduh e-sertifikat (dibuat lokal, 0 byte).
+ * Panitia: buat acara, pantau dashboard, daftar peserta, pindai (per perangkat), kalkulator dampak.
+ */
 export function afterEvent(s: Scenario, a: DigitalAssumptions = BASE_DIGITAL, grid = GRID_ID, includeEmbodied = true) {
   const w = PAGE_WEIGHT
-  // Peserta: sesi 1 = buka detail acara + daftar + lihat tiket; sesi 2 = buka tiket/sertifikat.
-  const perParticipant =
-    w.shell + w.eventDetail + w.ticket + // sesi pendaftaran
-    (a.participantSessions - 1) * (w.shell + w.ticket + w.certificate) // sesi berikutnya
-  const participantBytes = perParticipant * s.participants
-  const perOrganizerSession = w.shell + w.organizerShell + w.dashboard + w.participants + w.scanner + a.fallbackShare * w.scannerFallback + w.impact
-  const organizerBytes = perOrganizerSession * a.organizerSessions
+  const v = (bytes: number) => (a.cached ? w.cachedVisit : bytes)
+  const attendees = Math.round(s.participants * s.attendanceRate)
+  const perRegistrant = w.events + w.eventDetail + v(w.ticket)
+  const perAttendee = v(w.ticket) + v(w.certificate)
+  const participantBytes = perRegistrant * s.participants + perAttendee * attendees
+  const organizerBytes =
+    w.organizerEvents + w.organizerDashboard + w.participants + w.impact +
+    a.scannerDevices * (w.scanner + a.fallbackShare * w.scannerFallback)
   const bytes = participantBytes + organizerBytes
   const co2g = digitalGrams(bytes, grid, includeEmbodied)
-  return { perParticipant, participantBytes, perOrganizerSession, organizerBytes, bytes, co2g }
+  return { perRegistrant, perAttendee, participantBytes, organizerBytes, bytes, co2g }
 }
 
 export function compare(s: Scenario = BASE_SCENARIO, a: DigitalAssumptions = BASE_DIGITAL, grid = GRID_ID, includeEmbodied = true) {
