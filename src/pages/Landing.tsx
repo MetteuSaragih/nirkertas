@@ -219,7 +219,7 @@ export function Landing() {
 
       {/* Impact band */}
       <section className="relative overflow-hidden bg-emerald-950">
-        <img src={img(photos.campusTrees, 1000)} alt="" loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover opacity-20" />
+        <img src={img(photos.campusTrees, 640)} alt="" loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover opacity-20" />
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-950 via-emerald-950/90 to-emerald-950/60" />
         <div className="relative mx-auto grid max-w-7xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_1.2fr] lg:px-8">
           <div>
